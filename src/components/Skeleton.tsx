@@ -21,8 +21,8 @@ export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({ rows
       {Array.from({ length: rows }).map((_, i) => (
         <tr key={i}>
           {Array.from({ length: cols }).map((_, j) => (
-            <td key={j} className="p-5">
-              <Skeleton className="h-4 rounded" />
+            <td key={j} className="p-10">
+              <Skeleton className="h-6 rounded-2xl w-full" />
             </td>
           ))}
         </tr>

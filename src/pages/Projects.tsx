@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ListChecks, Calendar, ChevronRight, CheckCircle2, Circle, X, Trash2, FolderKanban } from 'lucide-react';
+import { Plus, ListChecks, Calendar, ChevronRight, CheckCircle2, Circle, X, Trash2, FolderKanban, User } from 'lucide-react';
 import { supabase, logActivity } from '../lib/supabase';
 import type { Project, Client, Task } from '../lib/supabase';
 import { useToast } from '../components/Toast';
@@ -23,12 +23,12 @@ const Projects: React.FC = () => {
         try {
             const { data: projData, error: projError } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
             const { data: clientData, error: clientError } = await supabase.from('clients').select('*');
-            
+
             if (projError || clientError) {
                 toast.error('Failed to load projects');
                 return;
             }
-            
+
             if (projData) setProjects(projData);
             if (clientData) setClients(clientData);
         } catch (err) {
@@ -54,12 +54,12 @@ const Projects: React.FC = () => {
 
     const handleCreateProject = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!formData.name.trim()) {
             toast.error('Project name is required');
             return;
         }
-        
+
         if (!formData.client_id) {
             toast.error('Please select a client');
             return;
@@ -71,7 +71,7 @@ const Projects: React.FC = () => {
                 toast.error('Failed to create project');
                 return;
             }
-            
+
             toast.success('Project created successfully!');
             setIsModalOpen(false);
             setFormData({ name: '', description: '', client_id: '', status: 'in-progress' });
@@ -95,14 +95,14 @@ const Projects: React.FC = () => {
             toast.warning('Please enter a task title');
             return;
         }
-        
+
         try {
             const { error } = await supabase.from('tasks').insert([{ project_id: selectedProject.id, title: newTaskTitle, is_completed: false }]);
             if (error) {
                 toast.error('Failed to add task');
                 return;
             }
-            
+
             toast.success('Task added!');
             setNewTaskTitle('');
             fetchTasks(selectedProject.id);
@@ -135,14 +135,14 @@ const Projects: React.FC = () => {
 
     const deleteTask = async (id: string) => {
         const task = tasks.find(t => t.id === id);
-        
+
         try {
             const { error } = await supabase.from('tasks').delete().eq('id', id);
             if (error) {
                 toast.error('Failed to delete task');
                 return;
             }
-            
+
             toast.success('Task deleted');
             if (selectedProject) {
                 fetchTasks(selectedProject.id);
@@ -166,65 +166,77 @@ const Projects: React.FC = () => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-16 pb-24"
         >
-            <header className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold">Projects</h1>
-                    <p className="text-muted">Track your progress and deliverables.</p>
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-1">
+                    <h1 className="text-5xl font-extrabold tracking-tighter text-text-main">Projects</h1>
+                    <p className="text-muted text-lg font-medium">Monitoring your creative workflow and deliverables.</p>
                 </div>
                 <button
                     onClick={() => { setFormData({ name: '', description: '', client_id: '', status: 'in-progress' }); setIsModalOpen(true); }}
-                    className="premium-btn flex items-center gap-2"
+                    className="premium-btn flex items-center gap-3"
                 >
-                    <Plus size={18} />
-                    <span>New Project</span>
+                    <Plus size={20} strokeWidth={2.5} />
+                    <span>Initiate Project</span>
                 </button>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* Project List */}
-                <div className="lg:col-span-1 space-y-4">
+                <div className="lg:col-span-1 space-y-5">
                     {loading ? (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             {[1, 2, 3].map(i => (
-                                <Skeleton key={i} className="h-32 rounded-2xl" />
+                                <Skeleton key={i} className="h-40 rounded-[2rem]" />
                             ))}
                         </div>
                     ) : projects.length > 0 ? (
                         projects.map(project => (
-                            <button
+                            <motion.button
                                 key={project.id}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                                 onClick={() => setSelectedProject(project)}
-                                className={`w-full text-left p-4 rounded-2xl transition-all border-2 ${selectedProject?.id === project.id ? 'border-primary bg-primary/5 shadow-md' : 'border-transparent glass-card hover:bg-white'}`}
+                                className={`w-full text-left p-6 rounded-[2rem] transition-all duration-500 border-2 ${selectedProject?.id === project.id ? 'border-primary bg-primary/[0.03] shadow-premium shadow-primary/10' : 'border-transparent glass-card hover:bg-white hover:shadow-xl'}`}
                             >
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full ${project.status === 'completed' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}>
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className={`badge ${project.status === 'completed' ? 'badge-success' : 'badge-primary'}`}>
                                         {project.status.replace('-', ' ')}
                                     </span>
-                                    <Calendar size={14} className="text-muted" />
+                                    <div className="w-8 h-8 rounded-full bg-border/40 flex items-center justify-center text-muted">
+                                        <Calendar size={14} strokeWidth={2.5} />
+                                    </div>
                                 </div>
-                                <h3 className="font-bold text-lg mb-1">{project.name}</h3>
-                                <p className="text-sm text-muted mb-3 line-clamp-1">{project.description}</p>
-                                <div className="flex items-center justify-between mt-4">
-                                    <span className="text-xs font-semibold text-primary">{getClientName(project.client_id)}</span>
-                                    <ChevronRight size={16} className="text-muted" />
+                                <h3 className="font-extrabold text-2xl tracking-tighter mb-2 leading-none">{project.name}</h3>
+                                <p className="text-sm text-muted mb-6 line-clamp-2 font-medium leading-relaxed">{project.description}</p>
+                                <div className="flex items-center justify-between mt-auto">
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted/60 mb-0.5">Client</span>
+                                        <span className="text-xs font-black text-primary truncate max-w-[150px]">{getClientName(project.client_id)}</span>
+                                    </div>
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${selectedProject?.id === project.id ? 'bg-primary text-white' : 'bg-primary/5 text-primary'}`}>
+                                        <ChevronRight size={18} strokeWidth={3} />
+                                    </div>
                                 </div>
-                            </button>
+                            </motion.button>
                         ))
                     ) : (
-                        <div className="glass-card p-8 text-center text-muted flex flex-col items-center">
-                            <ListChecks size={64} className="mb-6 opacity-10" />
-                            <h3 className="text-xl font-bold mb-2">No Projects Yet</h3>
-                            <p className="mb-6">Create your first project to start organizing your work and collaborating with clients.</p>
+                        <div className="glass-card p-12 text-center text-muted flex flex-col items-center border-2 border-dashed">
+                            <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center text-muted mb-8 border border-border/20">
+                                <FolderKanban size={32} strokeWidth={2} />
+                            </div>
+                            <h3 className="text-2xl font-extrabold tracking-tighter mb-3">No active projects</h3>
+                            <p className="mb-8 font-medium leading-relaxed">Establish your first creative venture to begin tracking excellence.</p>
                             <button
                                 onClick={() => { setFormData({ name: '', description: '', client_id: '', status: 'in-progress' }); setIsModalOpen(true); }}
-                                className="premium-btn gap-2"
+                                className="premium-btn gap-3"
                             >
-                                <Plus size={18} />
-                                Create First Project
+                                <Plus size={20} strokeWidth={2.5} />
+                                <span>Begin Project</span>
                             </button>
                         </div>
                     )}
@@ -235,91 +247,122 @@ const Projects: React.FC = () => {
                     {selectedProject ? (
                         <motion.div
                             key={selectedProject.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="glass-card p-8 min-h-[600px] flex flex-col"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="glass-card p-12 min-h-[750px] flex flex-col relative overflow-hidden group/detail"
                         >
-                            <div className="flex justify-between items-start mb-8">
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-2">{selectedProject.name}</h2>
-                                    <p className="text-muted">{selectedProject.description}</p>
+                            <div className="absolute top-0 right-0 p-12 text-primary opacity-[0.03] group-hover/detail:rotate-12 transition-transform duration-1000">
+                                <FolderKanban size={240} strokeWidth={3} />
+                            </div>
+
+                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+                                <div className="space-y-3">
+                                    <h2 className="text-4xl font-extrabold tracking-tighter leading-none">{selectedProject.name}</h2>
+                                    <p className="text-muted text-lg font-medium max-w-xl leading-relaxed">{selectedProject.description}</p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2">
-                                        <ListChecks size={16} />
-                                        {tasks.filter(t => t.is_completed).length}/{tasks.length} Tasks
-                                    </span>
+                                <div className="flex gap-4">
+                                    <div className="glass-card px-5 py-3 border-primary/20 flex items-center gap-3 bg-white/40">
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                            <ListChecks size={18} strokeWidth={2.5} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted/60">Milestones</span>
+                                            <span className="font-extrabold text-sm text-primary">{tasks.filter(t => t.is_completed).length}/{tasks.length} Completed</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex-1">
-                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                    <CheckCircle2 className="text-primary" size={20} />
-                                    Project Checklist
+                            <div className="relative z-10 flex-1 flex flex-col space-y-8">
+                                <h3 className="text-xl font-extrabold tracking-tight flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center text-success">
+                                        <CheckCircle2 size={18} strokeWidth={2.5} />
+                                    </div>
+                                    Task Execution
                                 </h3>
 
-                                <form onSubmit={handleAddTask} className="flex gap-2 mb-6">
+                                <form onSubmit={handleAddTask} className="flex gap-4 group/form">
                                     <input
                                         type="text"
-                                        placeholder="Add a new task..."
-                                        className="flex-1"
+                                        placeholder="Define a new milestone..."
+                                        className="flex-1 px-6 py-4 rounded-2xl glass-card border-border hover:border-primary/30 focus:border-primary transition-all duration-300 font-bold"
                                         value={newTaskTitle}
                                         onChange={(e) => setNewTaskTitle(e.target.value)}
                                     />
-                                    <button type="submit" className="premium-btn px-4"><Plus size={20} /></button>
+                                    <button type="submit" className="premium-btn px-6 aspect-square p-0 shrink-0 shadow-lg group">
+                                        <Plus size={24} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
+                                    </button>
                                 </form>
 
-                                <div className="space-y-3">
+                                <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                                     {tasks.length > 0 ? (
-                                        tasks.map(task => (
-                                            <div
+                                        tasks.map((task, idx) => (
+                                            <motion.div
                                                 key={task.id}
-                                                className="flex items-center justify-between p-3 rounded-xl border border-border group hover:border-primary transition-all"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: idx * 0.05 }}
+                                                className="flex items-center justify-between p-5 rounded-2xl border border-border/60 glass-card bg-white/30 backdrop-blur-md group/task hover:border-primary/20 hover:bg-white/60 transition-all duration-300 shadow-sm"
                                             >
                                                 <button
                                                     onClick={() => toggleTask(task)}
-                                                    className="flex items-center gap-3 flex-1 text-left bg-transparent p-0"
+                                                    className="flex items-center gap-4 flex-1 text-left bg-transparent p-0 group/check"
                                                 >
-                                                    {task.is_completed ? (
-                                                        <CheckCircle2 className="text-success" size={20} />
-                                                    ) : (
-                                                        <Circle className="text-muted" size={20} />
-                                                    )}
-                                                    <span className={task.is_completed ? 'text-muted line-through' : 'font-medium'}>{task.title}</span>
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${task.is_completed ? 'bg-success/10 text-success' : 'bg-border/40 text-muted group-hover/check:bg-primary/10 group-hover/check:text-primary backdrop-blur-none border border-transparent group-hover/check:border-primary/20'}`}>
+                                                        {task.is_completed ? (
+                                                            <CheckCircle2 size={22} strokeWidth={3} />
+                                                        ) : (
+                                                            <Circle size={22} strokeWidth={3} />
+                                                        )}
+                                                    </div>
+                                                    <span className={`font-bold transition-all duration-300 ${task.is_completed ? 'text-muted/60 line-through' : 'text-text-main text-lg tracking-tight'}`}>{task.title}</span>
                                                 </button>
                                                 <button
                                                     onClick={() => deleteTask(task.id)}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 text-accent hover:bg-red-50 rounded bg-transparent transition-opacity"
+                                                    className="opacity-0 group-hover/task:opacity-100 p-2 text-muted hover:text-accent hover:bg-accent/5 rounded-xl bg-transparent transition-all"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={20} strokeWidth={2.5} />
                                                 </button>
-                                            </div>
+                                            </motion.div>
                                         ))
                                     ) : (
-                                        <p className="text-center py-10 text-muted">No tasks defined for this project.</p>
+                                        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-40">
+                                            <ListChecks size={48} strokeWidth={2} />
+                                            <p className="font-extrabold text-lg tracking-tight">No milestones defined.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="mt-8 pt-6 border-t border-border flex justify-between items-center">
-                                <div className="text-sm text-muted">
-                                    Client: <span className="font-bold text-primary">{getClientName(selectedProject.client_id)}</span>
+                            <div className="relative z-10 mt-10 pt-8 border-t border-border/60 flex flex-col sm:flex-row justify-between items-center gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-primary/5 border-2 border-white flex items-center justify-center text-primary shadow-lg overflow-hidden">
+                                        <User size={18} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted/60 leading-none">Collaborating with</span>
+                                        <span className="font-black text-primary text-sm tracking-tight">{getClientName(selectedProject.client_id)}</span>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button className="secondary-btn py-2 px-4 text-sm">Edit Project</button>
-                                    <button className="premium-btn py-2 px-4 text-sm">Mark as Finished</button>
+                                <div className="flex gap-3 w-full sm:w-auto">
+                                    <button className="secondary-btn py-3 px-6 text-xs flex-1 sm:flex-none uppercase tracking-widest font-black shadow-sm">Modify</button>
+                                    <button className="premium-btn py-3 px-6 text-xs flex-1 sm:flex-none uppercase tracking-widest font-black shadow-lg">Finalize</button>
                                 </div>
                             </div>
                         </motion.div>
                     ) : (
-                        <div className="glass-card h-full flex flex-col items-center justify-center text-muted p-12 text-center">
-                            <FolderKanban size={64} className="mb-6 opacity-10" />
-                            <h3 className="text-xl font-bold mb-2">Select a Project</h3>
-                            <p>Choose a project from the left to view details and manage tasks.</p>
+                        <div className="glass-card h-full flex flex-col items-center justify-center text-muted p-20 text-center border-none shadow-premium min-h-[650px] relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-primary/[0.01] pointer-events-none" />
+                            <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center text-muted/20 mb-8 border border-border/20 group-hover:scale-110 transition-transform duration-700">
+                                <FolderKanban size={48} strokeWidth={1} />
+                            </div>
+                            <h3 className="text-3xl font-extrabold tracking-tighter text-text-main mb-3">Project Selection Required</h3>
+                            <p className="max-w-xs mx-auto font-medium leading-relaxed">Choose a project from your workbench to monitor performance and execute milestones.</p>
                         </div>
                     )}
                 </div>
             </div>
+
 
             {/* New Project Modal */}
             <AnimatePresence>

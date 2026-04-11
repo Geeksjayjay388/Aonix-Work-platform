@@ -11,7 +11,6 @@ import Payments from './pages/Payments';
 import Settings from './pages/Settings';
 import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
-import './App.css';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
@@ -46,7 +45,7 @@ const App: React.FC = () => {
   }
 
   if (!session) {
-    return <Auth />;
+    return <Auth onSession={(s) => setSession(s)} />;
   }
 
   return (

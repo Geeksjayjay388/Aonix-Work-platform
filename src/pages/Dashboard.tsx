@@ -68,178 +68,193 @@ const Dashboard: React.FC = () => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-12 pb-16"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-16 pb-24"
         >
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div>
-                    <h1 className="text-4xl font-black tracking-tight text-text-main mb-2">Dashboard</h1>
-                    <p className="text-muted text-lg font-medium">Welcome back, let's see how your studio is performing today.</p>
+                <div className="space-y-1">
+                    <h1 className="text-5xl font-extrabold tracking-tighter text-text-main">
+                        Overview
+                    </h1>
+                    <p className="text-muted text-lg font-medium">Monitoring your studio's creative pulse.</p>
                 </div>
                 <div className="flex gap-4">
-                    <button className="premium-btn group shadow-premium">
-                        <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-                        <span>New Project</span>
+                    <button className="premium-btn group">
+                        <Plus size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                        <span>Initialize Project</span>
                     </button>
                 </div>
             </header>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                 {[
-                    { label: 'Active Projects', value: stats.projects, icon: FolderKanban, bgColor: 'bg-primary/10', textColor: 'text-primary', delay: 0 },
-                    { label: 'Total Clients', value: stats.totalClients, icon: Users, bgColor: 'bg-secondary/10', textColor: 'text-secondary', delay: 0.1 },
-                    { label: 'Pending Amount', value: `$${stats.pendingPayments.toLocaleString()}`, icon: CreditCard, bgColor: 'bg-warning/10', textColor: 'text-warning', delay: 0.2 },
-                    { label: 'Total Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, icon: CreditCard, bgColor: 'bg-success/10', textColor: 'text-success', delay: 0.3 },
+                    { label: 'Live Projects', value: stats.projects, icon: FolderKanban, color: 'var(--primary)', delay: 0 },
+                    { label: 'Active Clients', value: stats.totalClients, icon: Users, color: 'var(--secondary)', delay: 0.1 },
+                    { label: 'Pending Yield', value: `$${stats.pendingPayments.toLocaleString()}`, icon: CreditCard, color: 'var(--warning)', delay: 0.2 },
+                    { label: 'Total Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, icon: CreditCard, color: 'var(--success)', delay: 0.3 },
                 ].map((stat) => (
                     <motion.div
                         key={stat.label}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: stat.delay, duration: 0.5 }}
-                        className="glass-card p-8 group transition-all duration-500"
+                        transition={{ delay: stat.delay, duration: 0.6 }}
+                        className="glass-card p-8 group overflow-hidden relative"
                     >
-                        <div className={`w-14 h-14 rounded-2xl ${stat.bgColor} flex items-center justify-center ${stat.textColor} mb-6 group-hover:scale-110 transition-transform duration-500`}>
-                            <stat.icon size={26} strokeWidth={2.5} />
+                        <div className="absolute -right-4 -top-4 w-32 h-32 bg-current opacity-[0.03] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" style={{ color: stat.color }} />
+
+                        <div className="relative z-10">
+                            <div
+                                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/5 group-hover:scale-110 transition-all duration-500"
+                                style={{ backgroundColor: `${stat.color}15`, color: stat.color }}
+                            >
+                                <stat.icon size={26} strokeWidth={2.5} />
+                            </div>
+                            <p className="text-muted text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</p>
+                            <h3 className="text-4xl font-extrabold mt-1 tracking-tighter">
+                                {loading ? (
+                                    <div className="h-10 w-24 skeleton rounded-xl mt-1" />
+                                ) : (
+                                    stat.value
+                                )}
+                            </h3>
                         </div>
-                        <p className="text-muted text-xs font-bold uppercase tracking-widest">{stat.label}</p>
-                        <h3 className="text-3xl font-black mt-2 tracking-tighter">
-                            {loading ? (
-                                <div className="h-9 w-24 skeleton bg-border/40 rounded-lg mt-1" />
-                            ) : (
-                                stat.value
-                            )}
-                        </h3>
                     </motion.div>
                 ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 {/* Recent Projects */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="glass-card p-10 bg-white shadow-premium">
-                        <div className="flex justify-between items-center mb-10">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
-                                    <FolderKanban size={20} strokeWidth={2.5} />
+                <div className="lg:col-span-2 space-y-10">
+                    <div className="glass-card shadow-premium overflow-hidden">
+                        <div className="p-8 md:p-12">
+                            <div className="flex justify-between items-center mb-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                                        <FolderKanban size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="text-3xl font-extrabold tracking-tighter">Current Pipeline</h3>
                                 </div>
-                                <h3 className="text-2xl font-black tracking-tight">Recent Projects</h3>
+                                <button className="text-primary font-bold text-sm hover:translate-x-1 transition-all duration-300 flex items-center gap-2 group p-2 rounded-xl hover:bg-primary/5">
+                                    Review All
+                                    <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
                             </div>
-                            <button className="text-primary font-bold text-sm hover:translate-x-1 transition-transform p-2 bg-transparent flex items-center gap-1 group">
-                                View Full Portfolio
-                                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </div>
 
-                        <div className="space-y-5">
-                            {loading ? (
-                                <div className="space-y-4">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className="h-28 skeleton rounded-2xl" />
-                                    ))}
-                                </div>
-                            ) : recentProjects.length > 0 ? recentProjects.map(proj => (
-                                <div key={proj.id} className="flex items-center justify-between p-6 rounded-3xl border border-border/60 hover:border-primary/20 hover:bg-primary/[0.01] hover:shadow-lg transition-all duration-500 group">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-500">
-                                            <FolderKanban size={24} strokeWidth={2.5} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <h4 className="font-black text-xl tracking-tight">{proj.name}</h4>
-                                            <div className="flex items-center gap-6">
-                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${proj.status === 'completed' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}>
-                                                    {proj.status}
-                                                </span>
-                                                <div className="flex items-center gap-3 w-40">
-                                                    <div className="flex-1 h-2 bg-border/60 rounded-full overflow-hidden">
-                                                        <motion.div
-                                                            initial={{ width: 0 }}
-                                                            animate={{ width: `${proj.taskCount > 0 ? (proj.completedCount / proj.taskCount) * 100 : 0}%` }}
-                                                            transition={{ duration: 1, delay: 0.5 }}
-                                                            className="h-full bg-primary"
-                                                        />
+                            <div className="space-y-4">
+                                {loading ? (
+                                    <div className="space-y-4">
+                                        {[1, 2, 3].map(i => (
+                                            <div key={i} className="h-28 skeleton rounded-3xl" />
+                                        ))}
+                                    </div>
+                                ) : recentProjects.length > 0 ? recentProjects.map(proj => (
+                                    <div key={proj.id} className="group glass-card p-6 border-transparent hover:border-primary/20 hover:bg-white/40 dark:hover:bg-primary/5 flex items-center justify-between transition-all duration-500">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-indigo-600/10 rounded-2xl flex items-center justify-center text-primary group-hover:from-primary group-hover:to-indigo-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-500">
+                                                <FolderKanban size={22} strokeWidth={2.5} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h4 className="font-extrabold text-xl tracking-tight leading-none">{proj.name}</h4>
+                                                <div className="flex items-center gap-6">
+                                                    <span className={`badge ${proj.status === 'completed' ? 'badge-success' : 'badge-primary'}`}>
+                                                        {proj.status}
+                                                    </span>
+                                                    <div className="flex items-center gap-4 w-48">
+                                                        <div className="flex-1 progress-container overflow-hidden">
+                                                            <motion.div
+                                                                initial={{ width: 0 }}
+                                                                animate={{ width: `${proj.taskCount > 0 ? (proj.completedCount / proj.taskCount) * 100 : 0}%` }}
+                                                                transition={{ duration: 1.5, ease: "circOut" }}
+                                                                className="progress-bar"
+                                                            />
+                                                        </div>
+                                                        <span className="text-xs font-black text-text-main min-w-[3ch]">{proj.taskCount > 0 ? Math.round((proj.completedCount / proj.taskCount) * 100) : 0}%</span>
                                                     </div>
-                                                    <span className="text-xs font-black text-text-main">{proj.taskCount > 0 ? Math.round((proj.completedCount / proj.taskCount) * 100) : 0}%</span>
                                                 </div>
                                             </div>
                                         </div>
+                                        <button className="w-10 h-10 rounded-full flex items-center justify-center text-muted group-hover:text-primary group-hover:bg-primary/10 transition-all duration-300">
+                                            <ChevronRight size={24} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                                        </button>
                                     </div>
-                                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-muted group-hover:text-primary group-hover:bg-primary/10 transition-all duration-300">
-                                        <ChevronRight size={24} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
+                                )) : (
+                                    <div className="text-center py-24 bg-primary/[0.02] rounded-[32px] border-2 border-dashed border-border/60 flex flex-col items-center">
+                                        <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center text-muted mb-6 border border-border/20">
+                                            <FolderKanban size={32} />
+                                        </div>
+                                        <h4 className="font-extrabold text-2xl tracking-tighter">Your pipeline is clear</h4>
+                                        <p className="text-muted max-w-xs mx-auto mt-3 font-medium leading-relaxed">Let's populate your workspace with some breakthrough projects.</p>
+                                        <button className="premium-btn mt-10 px-8 py-4">Create New Project</button>
                                     </div>
-                                </div>
-                            )) : (
-                                <div className="text-center py-20 bg-main/30 rounded-3xl border-2 border-dashed border-border flex flex-col items-center">
-                                    <FolderKanban size={48} className="text-border mb-4" />
-                                    <h4 className="font-bold text-lg">No projects active</h4>
-                                    <p className="text-muted max-w-xs mx-auto mt-2 font-medium leading-relaxed">Your creative pipeline is waiting. Ready to start something amazing?</p>
-                                    <button className="premium-btn mt-8">Create New Project</button>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Activity Feed */}
                 <div className="space-y-8">
-                    <div className="glass-card p-10 shadow-premium">
-                        <div className="flex items-center gap-3 mb-10">
-                            <div className="w-10 h-10 rounded-xl bg-accent/5 flex items-center justify-center text-accent">
-                                <Activity size={20} strokeWidth={2.5} />
+                    <div className="glass-card p-12 shadow-premium">
+                        <div className="flex items-center gap-4 mb-14">
+                            <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent shadow-inner">
+                                <Activity size={26} strokeWidth={2.5} />
                             </div>
-                            <h3 className="text-2xl font-black tracking-tight">Timeline</h3>
+                            <h3 className="text-3xl font-extrabold tracking-tighter">Timeline</h3>
                         </div>
-                        <div className="space-y-8 relative before:absolute before:left-[23px] before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60 before:rounded-full">
+                        <div className="space-y-10 relative before:absolute before:left-[23px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gradient-to-b before:from-border/80 before:to-transparent before:rounded-full">
                             {activities.map((activity, i) => {
                                 const Icon = activity.type === 'project' ? FolderKanban : activity.type === 'payment' ? CreditCard : activity.type === 'task' ? Activity : Users;
-                                const color = activity.type === 'project' ? 'text-primary' : activity.type === 'payment' ? 'text-success' : activity.type === 'task' ? 'text-accent' : 'text-secondary';
-                                const bgColor = activity.type === 'project' ? 'bg-primary/10' : activity.type === 'payment' ? 'bg-success/10' : activity.type === 'task' ? 'bg-accent/10' : 'bg-secondary/10';
+                                const colorClass = activity.type === 'project' ? 'text-primary' : activity.type === 'payment' ? 'text-success' : activity.type === 'task' ? 'text-accent' : 'text-secondary';
+                                const bgClass = activity.type === 'project' ? 'bg-primary/10' : activity.type === 'payment' ? 'bg-success/10' : activity.type === 'task' ? 'bg-accent/10' : 'bg-secondary/10';
+
                                 return (
                                     <motion.div
                                         key={activity.id}
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.4 + (i * 0.1) }}
-                                        className="relative flex gap-6 pl-12"
+                                        className="relative flex gap-6 pl-12 group"
                                     >
-                                        <div className={`absolute left-0 w-12 h-12 rounded-2xl ${bgColor} border-2 border-white shadow-sm flex items-center justify-center z-10 ${color}`}>
-                                            <Icon size={20} strokeWidth={2.5} />
+                                        <div className={`absolute left-0 w-12 h-12 rounded-2xl ${bgClass} border-4 border-bg-main shadow-lg flex items-center justify-center z-10 ${colorClass} group-hover:scale-110 transition-transform duration-500`}>
+                                            <Icon size={18} strokeWidth={2.5} />
                                         </div>
-                                        <div className="pt-1">
-                                            <p className="text-base font-bold leading-tight text-text-main group-hover:text-primary transition-colors">{activity.title}</p>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <p className="text-xs font-bold text-muted/60 uppercase tracking-widest">{new Date(activity.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
-                                                <span className="w-1 h-1 bg-border rounded-full" />
-                                                <p className="text-[10px] font-black uppercase tracking-widest bg-border/40 px-2 py-0.5 rounded text-muted">{activity.type}</p>
+                                        <div className="pt-1 select-none">
+                                            <p className="text-base font-extrabold leading-tight tracking-tight group-hover:text-primary transition-colors cursor-default">{activity.title}</p>
+                                            <div className="flex items-center gap-3 mt-2">
+                                                <p className="text-[10px] font-black text-muted/60 uppercase tracking-widest">{new Date(activity.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+                                                <span className="w-1.5 h-1.5 bg-border rounded-full" />
+                                                <p className="text-[9px] font-black uppercase tracking-widest bg-white dark:bg-white/5 border border-border/40 px-2.5 py-0.5 rounded-full text-muted">{activity.type}</p>
                                             </div>
                                         </div>
                                     </motion.div>
                                 );
                             })}
                         </div>
-                        <button className="secondary-btn w-full mt-12 text-xs font-black uppercase tracking-widest border-2">
-                            View Activity Logs
+                        <button className="secondary-btn w-full mt-12 text-xs font-black uppercase tracking-[0.2em] border-2 shadow-sm hover:shadow-md transition-all active:scale-95">
+                            Examine All Logs
                         </button>
                     </div>
 
-                    <div className="glass-card p-10 bg-gradient-to-br from-primary to-indigo-600 border-none shadow-premium relative group overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 text-white/5 group-hover:rotate-12 transition-transform duration-700">
-                            <ArrowUpRight size={120} strokeWidth={3} />
+                    <div className="glass-card p-10 bg-gradient-to-br from-indigo-600 to-violet-700 border-none shadow-premium relative group overflow-hidden">
+                        <div className="absolute -right-6 -bottom-6 p-8 text-white/5 group-hover:rotate-12 transition-transform duration-1000">
+                            <ArrowUpRight size={180} strokeWidth={3} />
                         </div>
                         <div className="relative z-10 text-white">
-                            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-8 border border-white/20">
+                            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center mb-8 border border-white/20 shadow-xl">
                                 <ArrowUpRight size={28} strokeWidth={3} />
                             </div>
-                            <h4 className="text-2xl font-black tracking-tight mb-4 leading-tight">Elevate Your Studio Performance</h4>
-                            <p className="text-sm font-medium text-white/80 mb-8 leading-relaxed">Get access to custom reports, advanced AI insights, and unlimited cloud storage.</p>
-                            <button className="w-full bg-white text-primary font-black text-xs py-4 rounded-2xl shadow-xl shadow-black/10 hover:bg-indigo-50 transition-colors uppercase tracking-widest">Upgrade to Platinum</button>
+                            <h4 className="text-3xl font-extrabold tracking-tighter mb-4 leading-[1.1]">Unlock Creative Excellence</h4>
+                            <p className="text-sm font-semibold text-white/80 mb-10 leading-relaxed">Activate custom analytics, neural project insights, and elite cloud performance.</p>
+                            <button className="w-full bg-white text-indigo-600 font-extrabold text-sm py-4 rounded-2xl shadow-2xl shadow-black/20 hover:bg-white/90 active:scale-95 transition-all uppercase tracking-widest">Aonix Platinum</button>
                         </div>
                     </div>
                 </div>
             </div>
         </motion.div>
     );
+
 };
 
 export default Dashboard;

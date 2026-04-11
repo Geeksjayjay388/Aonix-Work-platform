@@ -123,36 +123,37 @@ const Clients: React.FC = () => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-12 pb-16"
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-16 pb-24"
         >
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                <div>
-                    <h1 className="text-4xl font-black tracking-tight mb-2">Relationship Manager</h1>
-                    <p className="text-muted text-lg font-medium">Coordinate your client communications and project partners.</p>
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+                <div className="space-y-1">
+                    <h1 className="text-5xl font-extrabold tracking-tighter text-text-main">Partners</h1>
+                    <p className="text-muted text-lg font-medium">Coordinate your global network and creative alliances.</p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-80 group">
-                        <Search className="absolute left-4 top-4 w-5 h-5 text-muted group-focus-within:text-primary transition-colors" />
+                <div className="flex flex-col sm:flex-row gap-6 w-full md:w-auto items-center">
+                    <div className="relative flex-1 md:w-96 group">
+                        <Search className="absolute left-5 top-5 w-5 h-5 text-muted group-focus-within:text-primary transition-all duration-300" />
                         <input
                             type="text"
-                            placeholder="Find a client, company, or email..."
-                            className="pl-12 py-4 bg-white/50 border-2 border-border focus:border-primary/30 transition-all rounded-2xl"
+                            placeholder="Search network..."
+                            className="pl-14 py-5 bg-white/40 border-2 border-border/60 focus:border-primary/30 transition-all rounded-[2rem] font-bold text-sm shadow-sm hover:shadow-md"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <button
                         onClick={() => { setEditingClient(null); setFormData({ name: '', email: '', company: '' }); setIsModalOpen(true); }}
-                        className="premium-btn gap-3 py-4 px-8 rounded-2xl shadow-premium"
+                        className="premium-btn gap-4 py-5 px-10 rounded-[2rem] shadow-premium grow sm:grow-0"
                     >
-                        <UserPlus size={20} strokeWidth={2.5} />
-                        <span className="font-black uppercase tracking-widest text-xs">Add New Client</span>
+                        <UserPlus size={22} strokeWidth={3} />
+                        <span className="font-black uppercase tracking-[0.2em] text-[11px]">Enlist Partner</span>
                     </button>
                 </div>
             </header>
+
 
             {error && (
                 <div className="p-6 bg-accent/5 border-2 border-accent/10 rounded-3xl flex items-center gap-4 text-accent text-sm font-black animate-fade-in shadow-sm">
@@ -161,58 +162,65 @@ const Clients: React.FC = () => {
                 </div>
             )}
 
-            <div className="glass-card overflow-hidden bg-white shadow-premium border-none rounded-[32px]">
+            <div className="glass-card overflow-hidden bg-white/40 backdrop-blur-xl shadow-premium border-none rounded-[3rem] p-4">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-primary/[0.03] border-b border-border">
-                                <th className="p-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Partner Identity</th>
-                                <th className="p-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Organization</th>
-                                <th className="p-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Communication</th>
-                                <th className="p-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60 text-right">Operations</th>
+                            <tr className="border-b border-border/40">
+                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60">Partner Identity</th>
+                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60">Organization</th>
+                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60">Communication</th>
+                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60 text-right">Operations</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40">
                             {loading ? (
                                 [1, 2, 3, 4].map(i => (
                                     <tr key={i} className="animate-pulse">
-                                        <td className="p-8" colSpan={4}><div className="h-6 bg-border/40 rounded-xl w-full"></div></td>
+                                        <td className="px-10 py-8" colSpan={4}><div className="h-10 bg-border/40 rounded-2xl w-full"></div></td>
                                     </tr>
                                 ))
                             ) : filteredClients.length > 0 ? (
                                 filteredClients.map(client => (
-                                    <tr key={client.id} className="hover:bg-primary/[0.01] transition-all duration-300 group">
-                                        <td className="p-8">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary font-black text-xl group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-sm">
+                                    <tr key={client.id} className="hover:bg-primary/[0.03] transition-all duration-500 group">
+                                        <td className="px-10 py-8">
+                                            <div className="flex items-center gap-6">
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-600/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 transition-all duration-500 shadow-sm border border-white/40">
                                                     {client.name.charAt(0)}
                                                 </div>
-                                                <p className="font-black text-lg tracking-tight text-text-main">{client.name}</p>
+                                                <div className="space-y-1">
+                                                    <p className="font-extrabold text-xl tracking-tighter text-text-main leading-none">{client.name}</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted/60">{client.company || 'Individual'}</p>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td className="p-8">
-                                            <div className="flex items-center gap-2 text-muted font-bold">
-                                                <Building2 size={16} className="text-primary/40" />
+                                        <td className="px-10 py-8">
+                                            <div className="flex items-center gap-3 text-muted font-extrabold text-sm">
+                                                <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center group-hover:text-primary transition-colors">
+                                                    <Building2 size={14} strokeWidth={2.5} />
+                                                </div>
                                                 {client.company || 'Private Entity'}
                                             </div>
                                         </td>
-                                        <td className="p-8">
-                                            <div className="flex items-center gap-2 text-muted font-bold">
-                                                <Mail size={16} className="text-primary/40" />
+                                        <td className="px-10 py-8">
+                                            <div className="flex items-center gap-3 text-muted font-extrabold text-sm">
+                                                <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center group-hover:text-primary transition-colors">
+                                                    <Mail size={14} strokeWidth={2.5} />
+                                                </div>
                                                 {client.email}
                                             </div>
                                         </td>
-                                        <td className="p-8 text-right">
-                                            <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
+                                        <td className="px-10 py-8 text-right">
+                                            <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
                                                 <button
                                                     onClick={() => { setEditingClient(client); setFormData({ name: client.name, email: client.email, company: client.company }); setIsModalOpen(true); }}
-                                                    className="w-12 h-12 flex items-center justify-center hover:bg-primary/10 rounded-2xl text-primary bg-white border border-border shadow-sm transition-all"
+                                                    className="w-12 h-12 flex items-center justify-center hover:bg-primary/10 rounded-2xl text-primary bg-white/60 border-2 border-border/40 shadow-sm transition-all hover:border-primary/20"
                                                 >
                                                     <Edit2 size={18} strokeWidth={2.5} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(client)}
-                                                    className="w-12 h-12 flex items-center justify-center hover:bg-accent/10 rounded-2xl text-accent bg-white border border-border shadow-sm transition-all"
+                                                    className="w-12 h-12 flex items-center justify-center hover:bg-accent/10 rounded-2xl text-accent bg-white/60 border-2 border-border/40 shadow-sm transition-all hover:border-accent/20"
                                                     aria-label={`Delete ${client.name}`}
                                                 >
                                                     <Trash2 size={18} strokeWidth={2.5} />
@@ -225,17 +233,17 @@ const Clients: React.FC = () => {
                                 <tr>
                                     <td className="p-32 text-center" colSpan={4}>
                                         <div className="flex flex-col items-center max-w-sm mx-auto">
-                                            <div className="w-24 h-24 bg-primary/5 rounded-[32px] flex items-center justify-center text-primary/20 mb-8">
+                                            <div className="w-24 h-24 bg-white shadow-2xl rounded-[2rem] flex items-center justify-center text-muted/20 mb-10 border border-border/20">
                                                 <UserPlus size={48} strokeWidth={1} />
                                             </div>
-                                            <h3 className="text-2xl font-black mb-3 tracking-tight">No clinical entities found</h3>
-                                            <p className="text-muted font-medium mb-10 leading-relaxed italic">Your network is empty. Start growing your relationship database today.</p>
+                                            <h3 className="text-3xl font-extrabold mb-4 tracking-tighter text-text-main">No partners enlisted</h3>
+                                            <p className="text-muted font-medium mb-12 leading-relaxed italic">Your professional network is currently idle. Initialize a partnership to expand your reach.</p>
                                             <button
                                                 onClick={() => { setEditingClient(null); setFormData({ name: '', email: '', company: '' }); setIsModalOpen(true); }}
-                                                className="premium-btn py-4 px-10 rounded-2xl shadow-premium"
+                                                className="premium-btn py-5 px-12 rounded-[2rem] shadow-premium"
                                             >
-                                                <Plus size={20} strokeWidth={2.5} />
-                                                <span className="font-black uppercase tracking-widest text-xs">Create First Entry</span>
+                                                <Plus size={22} strokeWidth={3} />
+                                                <span className="font-black uppercase tracking-[0.2em] text-xs">Initiate Relationship</span>
                                             </button>
                                         </div>
                                     </td>
@@ -245,6 +253,7 @@ const Clients: React.FC = () => {
                     </table>
                 </div>
             </div>
+
 
             {/* Modal */}
             <AnimatePresence>
