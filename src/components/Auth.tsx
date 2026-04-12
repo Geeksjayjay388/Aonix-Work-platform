@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import logoPurple from '../assets/logopurple.png';
 
-const Auth: React.FC<{ onSession: (session: any) => void }> = ({ onSession }) => {
+const Auth: React.FC<{ onSession: (session: Session | null) => void }> = ({ onSession }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -35,9 +37,7 @@ const Auth: React.FC<{ onSession: (session: any) => void }> = ({ onSession }) =>
                 className="glass-card p-8 w-full max-w-md"
             >
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center mb-4 shadow-sm">
-                        <LogIn className="text-white w-7 h-7" />
-                    </div>
+                    <img src={logoPurple} alt="Aonix logo" className="w-14 h-14 rounded-xl object-cover mb-4 shadow-sm" />
                     <h1 className="text-2xl font-bold mb-1">Aonix Platform</h1>
                     <p className="text-muted text-sm">{isLogin ? 'Sign in to your account' : 'Create your account'}</p>
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -13,26 +13,137 @@ import {
     X,
     User,
     ListChecks,
-    ChevronRight
+    ChevronRight,
+    MessageSquare,
+    Bell
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getResolvedProfile } from '../lib/profile';
+import logoPurple from '../assets/logopurple.png';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isDark, setIsDark] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [userName, setUserName] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<'dev' | 'designer'>('dev');
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const messagesTableMissingRef = useRef(false);
+    const baseTitleRef = useRef((document.title || 'Aonix Platform').replace(/^\(\d+\)\s*/, ''));
     const navigate = useNavigate();
 
     React.useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) setUserEmail(user.email ?? null);
-        });
+        const loadUserData = async () => {
+            const profile = await getResolvedProfile();
+            if (!profile) return;
+            setUserEmail(profile.email ?? null);
+            setCurrentUserId(profile.id);
+            setUserName(profile.legalName);
+            setUserRole(profile.role);
+        };
+
+        loadUserData();
+
+        const savedTheme = localStorage.getItem('theme');
+        const startDark = savedTheme === 'dark';
+        setIsDark(startDark);
+        document.documentElement.setAttribute('data-theme', startDark ? 'dark' : 'light');
+
+        const handleThemeChange = (event: Event) => {
+            const customEvent = event as CustomEvent<'light' | 'dark'>;
+            setIsDark(customEvent.detail === 'dark');
+        };
+
+        // Listen for profile updates
+        const handleProfileUpdate = () => {
+            const name = localStorage.getItem('profile_legal_name') || localStorage.getItem('profile_name');
+            const role = (localStorage.getItem('profile_role') as 'dev' | 'designer') || 'dev';
+            setUserName(name);
+            setUserRole(role);
+        };
+
+        window.addEventListener('theme-change', handleThemeChange);
+        window.addEventListener('storage', handleProfileUpdate);
+        return () => {
+            window.removeEventListener('theme-change', handleThemeChange);
+            window.removeEventListener('storage', handleProfileUpdate);
+        };
     }, []);
 
+    // Track unread messages
+    useEffect(() => {
+        if (!currentUserId) return;
+
+        const isMissingMessagesTableError = (error: unknown) => {
+            if (!error || typeof error !== 'object') return false;
+            const code = 'code' in error && typeof error.code === 'string' ? error.code : '';
+            const message = 'message' in error && typeof error.message === 'string' ? error.message.toLowerCase() : '';
+            return code === 'PGRST205' || message.includes('messages');
+        };
+
+        const getUnreadCount = async () => {
+            if (messagesTableMissingRef.current) return;
+            const lastReadAt = localStorage.getItem(`messages_last_read_at_${currentUserId}`) || new Date(0).toISOString();
+            const { count, error } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .neq('sender_id', currentUserId)
+                .gt('created_at', lastReadAt);
+            if (error) {
+                if (isMissingMessagesTableError(error)) {
+                    messagesTableMissingRef.current = true;
+                    setUnreadCount(0);
+                    return;
+                }
+                console.error('Error loading unread messages:', error);
+                return;
+            }
+            setUnreadCount(count || 0);
+        };
+
+        getUnreadCount();
+
+        const subscription = supabase
+            .channel(`unread_${currentUserId}`)
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'messages'
+            }, (payload) => {
+                if (messagesTableMissingRef.current) return;
+                const message = payload.new as { sender_id?: string };
+                if (message.sender_id !== currentUserId) {
+                    getUnreadCount();
+                }
+            })
+            .subscribe();
+
+        const handleMessagesRead = () => {
+            getUnreadCount();
+        };
+        window.addEventListener('messages-read', handleMessagesRead);
+
+        return () => {
+            window.removeEventListener('messages-read', handleMessagesRead);
+            subscription.unsubscribe();
+        };
+    }, [currentUserId]);
+
+    useEffect(() => {
+        document.title = unreadCount > 0
+            ? `(${unreadCount}) ${baseTitleRef.current}`
+            : baseTitleRef.current;
+    }, [unreadCount]);
+
     const toggleTheme = () => {
-        setIsDark(!isDark);
-        document.documentElement.setAttribute('data-theme', !isDark ? 'dark' : 'light');
+        const nextIsDark = !isDark;
+        setIsDark(nextIsDark);
+        const nextTheme = nextIsDark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', nextTheme);
+        localStorage.setItem('theme', nextTheme);
+        window.dispatchEvent(new CustomEvent('theme-change', { detail: nextTheme }));
     };
 
     const handleSignOut = async () => {
@@ -46,19 +157,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { to: '/projects', icon: FolderKanban, label: 'Projects' },
         { to: '/tasks', icon: ListChecks, label: 'Tasks' },
         { to: '/payments', icon: CreditCard, label: 'Payments' },
+        { to: '/notifications', icon: Bell, label: 'Notifications', badge: unreadCount > 0 ? unreadCount : undefined },
+        { to: '/messages', icon: MessageSquare, label: 'Messages', badge: unreadCount > 0 ? unreadCount : undefined },
         { to: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 
     const SidebarContent = () => (
         <div className="flex flex-col h-full">
             <div className="flex items-center gap-3 mb-10 px-2 group cursor-pointer">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-500 relative overflow-hidden">
-                    <span className="text-white font-black text-lg italic z-10">A</span>
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent"></div>
-                </div>
+                <img src={logoPurple} alt="Aonix logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" />
                 <div className="flex flex-col">
                     <h2 className="text-xl font-black leading-none tracking-tighter">Aonix</h2>
-                    <span className="text-[10px] text-primary font-extrabold uppercase tracking-[0.3em] mt-1">Studio</span>
+                    <span className="text-[10px] text-primary font-extrabold uppercase tracking-[0.3em] mt-1">Studios</span>
                 </div>
             </div>
 
@@ -75,10 +185,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                             }`
                         }
                     >
-                        {({ isActive }) => (
+                    {({ isActive }) => (
                             <>
                                 <div className="flex items-center gap-4">
-                                    <item.icon size={20} strokeWidth={isActive ? 3 : 2} />
+                                    <div className="relative">
+                                        <item.icon size={20} strokeWidth={isActive ? 3 : 2} />
+                                        {typeof item.badge === 'number' && item.badge > 0 && (
+                                            <div className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                                {item.badge > 9 ? '9+' : item.badge}
+                                            </div>
+                                        )}
+                                    </div>
                                     <span className={`font-bold text-sm ${isActive ? 'tracking-tight' : ''}`}>{item.label}</span>
                                 </div>
                                 <ChevronRight size={14} className={`opacity-0 group-hover:opacity-40 transition-opacity duration-300`} />
@@ -94,9 +211,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-primary/20 border border-white/20">
                             <User size={18} strokeWidth={2.5} />
                         </div>
-                        <div className="overflow-hidden">
-                            <p className="text-xs font-black truncate">{userEmail?.split('@')[0] || 'User'}</p>
-                            <p className="text-[10px] text-muted truncate font-medium">{userEmail || 'designer@aonix.com'}</p>
+                        <div className="overflow-hidden flex-1">
+                            <p className="text-xs font-black truncate">{userName || userEmail?.split('@')[0] || 'User'}</p>
+                            <div className="flex items-center justify-between">
+                                <p className="text-[10px] text-muted truncate font-medium capitalize">{userRole}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -137,9 +256,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="lg:hidden fixed top-0 left-0 right-0 h-20 p-4 flex items-center justify-between z-50">
                 <div className="glass-card flex-1 h-full px-6 flex items-center justify-between shadow-lg">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                            <span className="text-white font-black text-lg italic">A</span>
-                        </div>
+                        <img src={logoPurple} alt="Aonix logo" className="w-9 h-9 object-contain" />
                         <h2 className="font-extrabold tracking-tighter text-lg">Aonix</h2>
                     </div>
                     <button
@@ -189,5 +306,3 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 export default Layout;
-
-

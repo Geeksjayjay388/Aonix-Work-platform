@@ -10,15 +10,22 @@ import {
     ArrowUpRight,
     Plus,
     Activity,
-    ChevronRight
+    ChevronRight,
+    Bell
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getResolvedProfile } from '../lib/profile';
 
 const Dashboard: React.FC = () => {
     const [stats, setStats] = useState({ projects: 0, pendingPayments: 0, totalClients: 0, totalRevenue: 0 });
     const [recentProjects, setRecentProjects] = useState<(Project & { taskCount: number, completedCount: number })[]>([]);
     const [activities, setActivities] = useState<ActivityType[]>([]);
     const [loading, setLoading] = useState(true);
+    const [profileName, setProfileName] = useState('User');
+    const [greeting, setGreeting] = useState('Good morning');
+    const [unreadCount, setUnreadCount] = useState(0);
     const toast = useToast();
+    const navigate = useNavigate();
 
     const fetchDashboardData = async () => {
         setLoading(true);
@@ -63,6 +70,30 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => {
         fetchDashboardData();
+
+        const hour = new Date().getHours();
+        setGreeting(hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
+
+        const loadHeaderData = async () => {
+            const profile = await getResolvedProfile();
+            if (!profile) return;
+            setProfileName(profile.legalName || 'User');
+
+            const lastReadAt = localStorage.getItem(`messages_last_read_at_${profile.id}`) || new Date(0).toISOString();
+            const { count, error } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .neq('sender_id', profile.id)
+                .gt('created_at', lastReadAt);
+
+            if (error) {
+                setUnreadCount(0);
+                return;
+            }
+            setUnreadCount(count || 0);
+        };
+
+        loadHeaderData();
     }, []);
 
 
@@ -76,12 +107,25 @@ const Dashboard: React.FC = () => {
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="space-y-1">
                     <h1 className="text-5xl font-extrabold tracking-tighter text-text-main">
-                        Overview
+                        {greeting}, {profileName}
                     </h1>
                     <p className="text-muted text-lg font-medium">Monitoring your studio's creative pulse.</p>
                 </div>
                 <div className="flex gap-4">
-                    <button className="premium-btn group">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/notifications')}
+                        className="relative glass-card px-4 py-3 hover:border-accent/40"
+                        aria-label="Open notifications"
+                    >
+                        <Bell size={20} className="text-accent" />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
+                    </button>
+                    <button className="premium-btn group !text-black">
                         <Plus size={20} className="group-hover:rotate-90 transition-transform duration-500" />
                         <span>Initialize Project</span>
                     </button>
@@ -232,7 +276,10 @@ const Dashboard: React.FC = () => {
                                 );
                             })}
                         </div>
-                        <button className="secondary-btn w-full mt-12 text-xs font-black uppercase tracking-[0.2em] border-2 shadow-sm hover:shadow-md transition-all active:scale-95">
+                        <button
+                            onClick={() => navigate('/settings?tab=logs')}
+                            className="secondary-btn w-full mt-12 text-xs font-black uppercase tracking-[0.2em] border-2 shadow-sm hover:shadow-md transition-all active:scale-95"
+                        >
                             Examine All Logs
                         </button>
                     </div>
@@ -258,4 +305,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-

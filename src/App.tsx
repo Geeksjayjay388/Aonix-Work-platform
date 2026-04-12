@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import Layout from './components/Layout';
 import Auth from './components/Auth';
@@ -9,16 +10,28 @@ import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import Payments from './pages/Payments';
 import Settings from './pages/Settings';
+import Messages from './pages/Messages';
+import Notifications from './pages/Notifications';
 import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
+import RoleSelectionDialog from './components/RoleSelectionDialog';
 
 const App: React.FC = () => {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+
+  const checkRoleSelection = (currentSession: Session | null) => {
+    if (currentSession?.user) {
+      const role = currentSession.user.user_metadata?.role;
+      setShowRoleDialog(!role);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      checkRoleSelection(session);
       setLoading(false);
     });
 
@@ -26,6 +39,7 @@ const App: React.FC = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      checkRoleSelection(session);
     });
 
     return () => subscription.unsubscribe();
@@ -51,6 +65,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ToastProvider>
+        {showRoleDialog && <RoleSelectionDialog onRoleSelected={() => setShowRoleDialog(false)} />}
         <Router>
           <Layout>
             <Routes>
@@ -59,6 +74,8 @@ const App: React.FC = () => {
               <Route path="/projects" element={<Projects />} />
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/payments" element={<Payments />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

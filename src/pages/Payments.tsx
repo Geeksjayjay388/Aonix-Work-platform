@@ -145,9 +145,9 @@ const Payments: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-card p-10 flex items-center gap-8 border-l-[16px] border-success bg-white/40 shadow-premium rounded-[3rem] group hover:scale-[1.02] transition-all duration-500"
+                    className="glass-card p-10 flex items-center gap-8 border-l-[16px] border-success bg-bg-card/70 shadow-premium rounded-[3rem] group hover:scale-[1.02] transition-all duration-500"
                 >
-                    <div className="w-20 h-20 bg-success/10 rounded-[1.5rem] flex items-center justify-center text-success group-hover:bg-success group-hover:text-white transition-all duration-500 shadow-xl shadow-success/10 border border-white/20">
+                    <div className="w-20 h-20 bg-success/10 rounded-[1.5rem] flex items-center justify-center text-success group-hover:bg-success group-hover:text-white transition-all duration-500 shadow-xl shadow-success/10 border border-border/40">
                         <DollarSign size={36} strokeWidth={3} />
                     </div>
                     <div>
@@ -159,9 +159,9 @@ const Payments: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-card p-10 flex items-center gap-8 border-l-[16px] border-primary bg-white/40 shadow-premium rounded-[3rem] group hover:scale-[1.02] transition-all duration-500"
+                    className="glass-card p-10 flex items-center gap-8 border-l-[16px] border-primary bg-bg-card/70 shadow-premium rounded-[3rem] group hover:scale-[1.02] transition-all duration-500"
                 >
-                    <div className="w-20 h-20 bg-primary/10 rounded-[1.5rem] flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-xl shadow-primary/10 border border-white/20">
+                    <div className="w-20 h-20 bg-primary/10 rounded-[1.5rem] flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-xl shadow-primary/10 border border-border/40">
                         <Clock size={36} strokeWidth={3} />
                     </div>
                     <div>
@@ -171,7 +171,7 @@ const Payments: React.FC = () => {
                 </motion.div>
             </div>
 
-            <div className="glass-card overflow-hidden bg-white/40 backdrop-blur-xl shadow-premium border-none rounded-[3.5rem] p-4">
+            <div className="glass-card overflow-hidden bg-bg-card/70 backdrop-blur-xl shadow-premium border-none rounded-[3.5rem] p-4">
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -249,7 +249,7 @@ const Payments: React.FC = () => {
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="glass-card p-10 w-full max-w-lg shadow-2xl relative overflow-hidden bg-white rounded-[40px] border-none"
+                            className="glass-card p-10 w-full max-w-lg shadow-2xl relative overflow-hidden bg-bg-card rounded-[40px] border-none"
                         >
                             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary to-indigo-600" />
                             <div className="flex justify-between items-center mb-10">
@@ -263,7 +263,7 @@ const Payments: React.FC = () => {
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Creative Venture</label>
                                     <select
-                                        className="py-4 px-6 rounded-2xl text-lg font-bold bg-white/50 border-2 border-border focus:border-primary/30 transition-all outline-none"
+                                        className="py-4 px-6 rounded-2xl text-lg font-bold bg-bg-card/70 border-2 border-border focus:border-primary/30 transition-all outline-none"
                                         value={formData.project_id}
                                         onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
                                         required
@@ -275,7 +275,7 @@ const Payments: React.FC = () => {
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Partner Entity</label>
                                     <select
-                                        className="py-4 px-6 rounded-2xl text-lg font-bold bg-white/50 border-2 border-border focus:border-primary/30 transition-all outline-none"
+                                        className="py-4 px-6 rounded-2xl text-lg font-bold bg-bg-card/70 border-2 border-border focus:border-primary/30 transition-all outline-none"
                                         value={formData.client_id}
                                         onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
                                         required

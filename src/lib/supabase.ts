@@ -30,8 +30,23 @@ export type Task = {
   id: string;
   project_id: string;
   title: string;
+  assignee?: 'developer' | 'web-designer';
+  status?: 'todo' | 'in-progress' | 'done';
+  project_link?: string | null;
+  message?: string | null;
   is_completed: boolean;
   created_at: string;
+};
+
+export type Profile = {
+  id: string;
+  email: string | null;
+  legal_name: string | null;
+  role: 'dev' | 'designer' | null;
+  title: string | null;
+  studio: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Payment = {
@@ -51,7 +66,7 @@ export type Activity = {
   action: 'created' | 'updated' | 'deleted' | 'completed';
   entity_id: string;
   title: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   created_at: string;
 };
 

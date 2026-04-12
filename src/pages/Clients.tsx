@@ -139,7 +139,7 @@ const Clients: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Search network..."
-                            className="pl-14 py-5 bg-white/40 border-2 border-border/60 focus:border-primary/30 transition-all rounded-[2rem] font-bold text-sm shadow-sm hover:shadow-md"
+                            className="pl-14 py-5 bg-bg-card/70 border-2 border-border/60 focus:border-primary/30 transition-all rounded-[2rem] font-bold text-sm shadow-sm hover:shadow-md"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -162,7 +162,7 @@ const Clients: React.FC = () => {
                 </div>
             )}
 
-            <div className="glass-card overflow-hidden bg-white/40 backdrop-blur-xl shadow-premium border-none rounded-[3rem] p-4">
+            <div className="glass-card overflow-hidden bg-bg-card/70 backdrop-blur-xl shadow-premium border-none rounded-[3rem] p-4">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
@@ -185,7 +185,7 @@ const Clients: React.FC = () => {
                                     <tr key={client.id} className="hover:bg-primary/[0.03] transition-all duration-500 group">
                                         <td className="px-10 py-8">
                                             <div className="flex items-center gap-6">
-                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-600/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 transition-all duration-500 shadow-sm border border-white/40">
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-600/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 transition-all duration-500 shadow-sm border border-border/40">
                                                     {client.name.charAt(0)}
                                                 </div>
                                                 <div className="space-y-1">
@@ -214,13 +214,13 @@ const Clients: React.FC = () => {
                                             <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
                                                 <button
                                                     onClick={() => { setEditingClient(client); setFormData({ name: client.name, email: client.email, company: client.company }); setIsModalOpen(true); }}
-                                                    className="w-12 h-12 flex items-center justify-center hover:bg-primary/10 rounded-2xl text-primary bg-white/60 border-2 border-border/40 shadow-sm transition-all hover:border-primary/20"
+                                                    className="w-12 h-12 flex items-center justify-center hover:bg-primary/10 rounded-2xl text-primary bg-bg-card/80 border-2 border-border/40 shadow-sm transition-all hover:border-primary/20"
                                                 >
                                                     <Edit2 size={18} strokeWidth={2.5} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(client)}
-                                                    className="w-12 h-12 flex items-center justify-center hover:bg-accent/10 rounded-2xl text-accent bg-white/60 border-2 border-border/40 shadow-sm transition-all hover:border-accent/20"
+                                                    className="w-12 h-12 flex items-center justify-center hover:bg-accent/10 rounded-2xl text-accent bg-bg-card/80 border-2 border-border/40 shadow-sm transition-all hover:border-accent/20"
                                                     aria-label={`Delete ${client.name}`}
                                                 >
                                                     <Trash2 size={18} strokeWidth={2.5} />
@@ -233,7 +233,7 @@ const Clients: React.FC = () => {
                                 <tr>
                                     <td className="p-32 text-center" colSpan={4}>
                                         <div className="flex flex-col items-center max-w-sm mx-auto">
-                                            <div className="w-24 h-24 bg-white shadow-2xl rounded-[2rem] flex items-center justify-center text-muted/20 mb-10 border border-border/20">
+                                            <div className="w-24 h-24 bg-bg-card shadow-2xl rounded-[2rem] flex items-center justify-center text-muted/20 mb-10 border border-border/20">
                                                 <UserPlus size={48} strokeWidth={1} />
                                             </div>
                                             <h3 className="text-3xl font-extrabold mb-4 tracking-tighter text-text-main">No partners enlisted</h3>
@@ -263,7 +263,7 @@ const Clients: React.FC = () => {
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="glass-card p-10 w-full max-w-lg shadow-2xl relative overflow-hidden bg-white rounded-[40px] border-none"
+                            className="glass-card p-10 w-full max-w-lg shadow-2xl relative overflow-hidden bg-bg-card rounded-[40px] border-none"
                         >
                             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary to-indigo-600" />
                             <div className="flex justify-between items-center mb-10">

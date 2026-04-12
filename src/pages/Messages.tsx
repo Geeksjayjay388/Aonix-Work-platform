@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Image as ImageIcon, X, AlertCircle } from 'lucide-react';
+import { Send, Image as ImageIcon, X, AlertCircle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getResolvedProfile } from '../lib/profile';
 
 interface Message {
   id: string;
@@ -10,10 +11,16 @@ interface Message {
   sender_email: string;
   sender_name: string;
   sender_role: string;
+  project_id?: string | null;
   receiver_id?: string | null;
   content: string;
   image_url?: string;
   created_at: string;
+}
+
+interface ProjectOption {
+  id: string;
+  name: string;
 }
 
 interface UserProfile {
@@ -33,6 +40,11 @@ const Messages: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [profileIncomplete, setProfileIncomplete] = useState(false);
   const [messagesUnavailable, setMessagesUnavailable] = useState<string | null>(null);
+  const [resolvedImageUrls, setResolvedImageUrls] = useState<Record<string, string>>({});
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [projectUnreadCounts, setProjectUnreadCounts] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const readMarkerKeyRef = useRef<string | null>(null);
@@ -50,34 +62,49 @@ const Messages: React.FC = () => {
     return palette[hash % palette.length];
   };
 
+  const getStoragePathFromImageRef = (imageRef: string) => {
+    if (!imageRef) return null;
+    if (!imageRef.startsWith('http')) return imageRef;
+
+    try {
+      const url = new URL(imageRef);
+      const match = url.pathname.match(/\/object\/(?:public|sign)\/message-images\/(.+)$/);
+      if (!match || !match[1]) return null;
+      return decodeURIComponent(match[1]);
+    } catch {
+      return null;
+    }
+  };
+
   const markMessagesAsRead = () => {
     if (!readMarkerKeyRef.current) return;
     localStorage.setItem(readMarkerKeyRef.current, new Date().toISOString());
     window.dispatchEvent(new CustomEvent('messages-read'));
   };
 
+  const getDisplayImage = (message: Message) => {
+    if (!message.image_url) return null;
+    if (message.image_url.startsWith('http') || message.image_url.startsWith('data:')) {
+      return message.image_url;
+    }
+    return resolvedImageUrls[message.id] || null;
+  };
+
   // Get current user
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const legalName = localStorage.getItem('profile_legal_name')?.trim() || '';
-          const localRole = localStorage.getItem('profile_role');
-          const metadataRole = user.user_metadata?.role as 'dev' | 'designer' | undefined;
-          const resolvedRole: 'dev' | 'designer' = localRole === 'designer' || localRole === 'dev'
-            ? localRole
-            : (metadataRole === 'designer' || metadataRole === 'dev' ? metadataRole : 'dev');
-
+        const profile = await getResolvedProfile();
+        if (profile) {
           setCurrentUser({
-            id: user.id,
-            email: user.email || '',
-            legal_name: legalName,
-            role: resolvedRole
+            id: profile.id,
+            email: profile.email || '',
+            legal_name: profile.legalName,
+            role: profile.role
           });
 
-          setProfileIncomplete(!legalName);
-          readMarkerKeyRef.current = `messages_last_read_at_${user.id}`;
+          setProfileIncomplete(!profile.legalName);
+          readMarkerKeyRef.current = `messages_last_read_at_${profile.id}`;
           markMessagesAsRead();
         }
       } catch (error) {
@@ -89,14 +116,70 @@ const Messages: React.FC = () => {
     getCurrentUser();
   }, []);
 
-  // Fetch messages
   useEffect(() => {
     if (!currentUser) return;
+
+    const fetchProjects = async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading projects:', error);
+        return;
+      }
+
+      const projectList = (data || []) as ProjectOption[];
+      setProjects(projectList);
+      if (projectList.length > 0) {
+        setSelectedProjectId(prev => prev || projectList[0].id);
+      }
+    };
+
+    fetchProjects();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser || projects.length === 0) return;
+
+    const loadProjectUnreadCounts = async () => {
+      const lastReadAt = localStorage.getItem(`messages_last_read_at_${currentUser.id}`) || new Date(0).toISOString();
+      const { data, error } = await supabase
+        .from('messages')
+        .select('project_id, sender_id, created_at')
+        .neq('sender_id', currentUser.id)
+        .gt('created_at', lastReadAt);
+
+      if (error) {
+        console.error('Error loading project unread counts:', error);
+        return;
+      }
+
+      const counts: Record<string, number> = {};
+      for (const project of projects) counts[project.id] = 0;
+      (data || []).forEach((row: { project_id?: string | null }) => {
+        if (!row.project_id) return;
+        counts[row.project_id] = (counts[row.project_id] || 0) + 1;
+      });
+      setProjectUnreadCounts(counts);
+    };
+
+    loadProjectUnreadCounts();
+  }, [currentUser, projects, messages.length]);
+
+  // Fetch messages
+  useEffect(() => {
+    if (!currentUser || !selectedProjectId) {
+      setMessages([]);
+      return;
+    }
 
     const fetchMessages = async () => {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
+        .eq('project_id', selectedProjectId)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -118,11 +201,12 @@ const Messages: React.FC = () => {
 
     // Subscribe to real-time updates
     const subscription = supabase
-      .channel('all_messages')
+      .channel(`project_messages_${selectedProjectId}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'messages'
+        table: 'messages',
+        filter: `project_id=eq.${selectedProjectId}`
       }, (payload) => {
         if (payload.eventType === 'INSERT') {
           const incoming = payload.new as Message;
@@ -139,7 +223,7 @@ const Messages: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [currentUser, messagesUnavailable]);
+  }, [currentUser, selectedProjectId, messagesUnavailable]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -148,7 +232,9 @@ const Messages: React.FC = () => {
 
   const playNotificationSound = () => {
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioCtor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!audioCtor) return;
+      const audioContext = new audioCtor();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -163,7 +249,7 @@ const Messages: React.FC = () => {
       
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
-    } catch (e) {
+    } catch {
       console.log('Audio notification failed (may be blocked by browser)');
     }
   };
@@ -178,6 +264,50 @@ const Messages: React.FC = () => {
     if (!currentUser) return;
     markMessagesAsRead();
   }, [currentUser, messages.length]);
+
+  useEffect(() => {
+    const resolveImages = async () => {
+      const nextResolved: Record<string, string> = {};
+
+      await Promise.all(messages.map(async (msg) => {
+        if (!msg.image_url) return;
+
+        const storagePath = getStoragePathFromImageRef(msg.image_url);
+        if (!storagePath) {
+          nextResolved[msg.id] = msg.image_url;
+          return;
+        }
+
+        const { data, error } = await supabase.storage
+          .from('message-images')
+          .createSignedUrl(storagePath, 60 * 60);
+
+        if (error || !data?.signedUrl) {
+          nextResolved[msg.id] = msg.image_url;
+          return;
+        }
+        nextResolved[msg.id] = data.signedUrl;
+      }));
+
+      setResolvedImageUrls(prev => ({ ...prev, ...nextResolved }));
+    };
+
+    resolveImages();
+  }, [messages]);
+
+  const retryResolveImage = async (msg: Message) => {
+    if (!msg.image_url) return;
+    const storagePath = getStoragePathFromImageRef(msg.image_url);
+    if (!storagePath) return;
+
+    const { data, error } = await supabase.storage
+      .from('message-images')
+      .createSignedUrl(storagePath, 60 * 60);
+
+    if (error || !data?.signedUrl) return;
+    setResolvedImageUrls(prev => ({ ...prev, [msg.id]: data.signedUrl }));
+    setFailedImages(prev => ({ ...prev, [msg.id]: false }));
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -205,18 +335,15 @@ const Messages: React.FC = () => {
       return null;
     }
 
-    const { data } = supabase.storage
-      .from('message-images')
-      .getPublicUrl(filePath);
-
-    return data?.publicUrl || null;
+    return filePath;
   };
 
   const handleSendMessage = async () => {
-    if (!currentUser || (!newMessage.trim() && !imageFile)) return;
+    if (!currentUser || !selectedProjectId || (!newMessage.trim() && !imageFile)) return;
 
     setSending(true);
     try {
+      const previewAtSend = imagePreview;
       let imageUrl = null;
       if (imageFile) {
         imageUrl = await uploadImage(imageFile);
@@ -229,6 +356,7 @@ const Messages: React.FC = () => {
         sender_email: currentUser.email,
         sender_name: currentUser.legal_name,
         sender_role: currentUser.role,
+        project_id: selectedProjectId,
         content: newMessage || '',
         image_url: imageUrl
         })
@@ -246,6 +374,9 @@ const Messages: React.FC = () => {
 
       if (data) {
         const inserted = data as Message;
+        if (previewAtSend && inserted.image_url) {
+          setResolvedImageUrls(prev => ({ ...prev, [inserted.id]: previewAtSend }));
+        }
         setMessages(prev => prev.some(msg => msg.id === inserted.id) ? prev : [...prev, inserted]);
       }
 
@@ -310,7 +441,27 @@ const Messages: React.FC = () => {
         {/* Header */}
         <div className="border-b border-border pb-4 mb-4">
           <h2 className="text-2xl font-bold">Team Messages</h2>
-          <p className="text-sm text-muted mt-1">All messages from your team</p>
+          <p className="text-sm text-muted mt-1">Conversations are grouped by project</p>
+          <div className="mt-3">
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="max-w-sm"
+              disabled={projects.length === 0}
+            >
+              {projects.length === 0 ? (
+                <option value="">No projects available</option>
+              ) : (
+                projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {projectUnreadCounts[project.id] > 0
+                      ? `${project.name} (${projectUnreadCounts[project.id]})`
+                      : project.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
         </div>
         {messagesUnavailable && (
           <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-warning">
@@ -323,7 +474,9 @@ const Messages: React.FC = () => {
           <AnimatePresence>
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p className="text-muted">No messages yet. Start a conversation!</p>
+                <p className="text-muted">
+                  {selectedProjectId ? 'No messages in this project yet. Start a conversation!' : 'Select a project to view messages.'}
+                </p>
               </div>
             ) : (
               messages.map(msg => (
@@ -336,7 +489,7 @@ const Messages: React.FC = () => {
                 >
                   <div className="max-w-xs lg:max-w-md">
                     <div
-                      className="rounded-lg border p-3"
+                      className="rounded-lg border p-3 text-text-main"
                       style={{
                         backgroundColor: `${getSenderColor(msg.sender_id)}1A`,
                         borderColor: `${getSenderColor(msg.sender_id)}66`
@@ -351,8 +504,28 @@ const Messages: React.FC = () => {
                         </span>
                         <span className="text-[10px] font-semibold uppercase text-muted">{msg.sender_role}</span>
                       </div>
-                      {msg.image_url && (
-                        <img src={msg.image_url} alt="Message" className="rounded mb-2 max-w-full max-h-64" />
+                      {msg.image_url && getDisplayImage(msg) && (
+                        <img
+                          src={getDisplayImage(msg)!}
+                          alt="Message"
+                          className="rounded mb-2 max-w-full max-h-64"
+                          onError={() => setFailedImages(prev => ({ ...prev, [msg.id]: true }))}
+                        />
+                      )}
+                      {msg.image_url && failedImages[msg.id] && (
+                        <button
+                          type="button"
+                          onClick={() => retryResolveImage(msg)}
+                          className="mb-2 inline-flex items-center gap-2 rounded px-2 py-1 text-xs bg-warning/10 text-warning border border-warning/30 hover:bg-warning/20"
+                        >
+                          <RefreshCw size={12} />
+                          Retry image
+                        </button>
+                      )}
+                      {msg.image_url && !getDisplayImage(msg) && (
+                        <div className="rounded mb-2 px-3 py-2 text-xs bg-bg-card/70 border border-border text-muted">
+                          Loading image...
+                        </div>
                       )}
                       {msg.content && <p className="text-sm break-words">{msg.content}</p>}
                       <p className="text-xs mt-1 text-muted">
@@ -394,7 +567,7 @@ const Messages: React.FC = () => {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={sending || !!messagesUnavailable}
+            disabled={sending || !!messagesUnavailable || !selectedProjectId}
             className="p-3 rounded-lg border border-border hover:bg-primary/5 transition-colors disabled:opacity-50 flex-shrink-0"
           >
             <ImageIcon size={20} />
@@ -405,12 +578,12 @@ const Messages: React.FC = () => {
             onChange={e => setNewMessage(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !sending && handleSendMessage()}
             placeholder="Type a message..."
-            disabled={sending || !!messagesUnavailable}
+            disabled={sending || !!messagesUnavailable || !selectedProjectId}
             className="flex-1 px-4 py-2 rounded-lg border border-border focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
           />
           <button
             onClick={handleSendMessage}
-            disabled={sending || !!messagesUnavailable || (!newMessage.trim() && !imageFile)}
+            disabled={sending || !!messagesUnavailable || !selectedProjectId || (!newMessage.trim() && !imageFile)}
             className="p-3 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50 flex-shrink-0"
           >
             <Send size={20} />

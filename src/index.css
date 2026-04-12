@@ -35,15 +35,20 @@
   /* 72 units */
 }
 
-@theme dark {
-  --color-bg-main: #f6f7f9;
-  --color-bg-card: #ffffff;
-  --color-text-main: #0a0a0a;
-  --color-text-muted: #3f3f46;
-  --color-border: #d4d4d8;
-  --color-glass-bg: #ffffff;
-  --color-glass-border: #e4e4e7;
-  --shadow-premium: 0 16px 32px -12px rgba(24, 24, 27, 0.2);
+:root {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg-main: #090c12;
+  --color-bg-card: #111827;
+  --color-text-main: #f3f4f6;
+  --color-text-muted: #cbd5e1;
+  --color-border: #334155;
+  --color-glass-bg: #111827;
+  --color-glass-border: #334155;
+  --shadow-premium: 0 16px 32px -12px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
@@ -53,15 +58,15 @@
   }
 
   h1, h2 {
-    @apply font-extrabold tracking-tight leading-tight;
+    @apply font-semibold tracking-tight leading-tight;
   }
 
   h3, h4 {
-    @apply font-bold tracking-normal leading-snug;
+    @apply font-medium tracking-normal leading-snug;
   }
 
   input, select, textarea {
-    @apply w-full py-3.5 px-4 rounded-md bg-white border border-border focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all outline-none font-bold;
+    @apply w-full py-3.5 px-4 rounded-md bg-white border border-border focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all outline-none font-medium;
     color: var(--color-text-main);
 
     &::placeholder {
@@ -69,6 +74,12 @@
       opacity: 0.4;
     }
 
+  }
+
+  [data-theme='dark'] input,
+  [data-theme='dark'] select,
+  [data-theme='dark'] textarea {
+    @apply bg-slate-900/70;
   }
 
   button {
@@ -82,6 +93,10 @@
   background-image: linear-gradient(180deg, #ffffff 0%, #f6f7f9 100%);
 }
 
+[data-theme='dark'] .mesh-bg {
+  background-image: linear-gradient(180deg, #0b1220 0%, #090c12 100%);
+}
+
 @utility glass-card {
   @apply bg-glass-bg border border-glass-border rounded-lg shadow-sm transition-all duration-300;
 
@@ -90,8 +105,23 @@
   }
 }
 
+[data-theme='dark'] .glass-card:hover {
+  @apply bg-black border-primary/25;
+}
+
+/* Dark mode fix for white backgrounds in cards and sections */
+[data-theme='dark'] .glass-card.bg-white,
+[data-theme='dark'] section.glass-card.bg-white {
+  @apply bg-slate-900/50 text-text-main;
+}
+
+[data-theme='dark'] .glass-card.p-5.bg-white,
+[data-theme='dark'] .glass-card.p-4.bg-white {
+  @apply bg-slate-800/50;
+}
+
 @utility premium-btn {
-  @apply bg-white text-text-main py-3.5 px-7 rounded-sm font-black tracking-tight border-2 border-black flex items-center justify-center gap-3 overflow-hidden relative;
+  @apply bg-white text-text-main py-3.5 px-7 rounded-sm font-semibold tracking-tight border-2 border-black flex items-center justify-center gap-3 overflow-hidden relative;
   box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.9);
 
   &::before {
@@ -109,7 +139,7 @@
 }
 
 @utility secondary-btn {
-  @apply bg-zinc-100 border border-border text-text-main py-3.5 px-7 rounded-sm font-black transition-all duration-200;
+  @apply bg-zinc-100 border border-border text-text-main py-3.5 px-7 rounded-sm font-medium transition-all duration-200;
 
   &:hover {
     @apply bg-white border-black text-text-main -translate-y-0.5;
@@ -126,7 +156,7 @@
 }
 
 @utility badge {
-  @apply py-1.5 px-3 rounded-md text-[10px] font-black uppercase tracking-[0.2em] shadow-sm inline-flex items-center gap-2;
+  @apply py-1.5 px-3 rounded-md text-[10px] font-semibold uppercase tracking-[0.2em] shadow-sm inline-flex items-center gap-2;
 }
 
 @utility badge-success {
