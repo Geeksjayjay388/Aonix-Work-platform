@@ -19,7 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { getResolvedProfile } from '../lib/profile';
 
-const Dashboard: React.FC = () => {
+export const Dashboard: React.FC = () => {
     const [stats, setStats] = useState({ projects: 0, pendingPayments: 0, totalClients: 0, totalRevenue: 0 });
     const [recentProjects, setRecentProjects] = useState<(Project & { taskCount: number, completedCount: number })[]>([]);
     const [activities, setActivities] = useState<ActivityType[]>([]);
@@ -137,9 +137,6 @@ const Dashboard: React.FC = () => {
         { label: 'Messages', value: unreadCount.toLocaleString(), change: '+24%', trend: 'up', icon: MessageSquare, color: '#10B981', delay: 0.2 },
         { label: 'Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, change: '+8%', trend: 'up', icon: CreditCard, color: '#F59E0B', delay: 0.3 },
     ];
-
-
-
 
     return (
         <motion.div
@@ -473,7 +470,6 @@ const Dashboard: React.FC = () => {
             </div>
         </motion.div>
     );
-
 };
 
 export default Dashboard;

@@ -5,7 +5,7 @@ import { Mail, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import logoPurple from '../assets/logopurple.png';
 
-const Auth: React.FC<{ onSession: (session: Session | null) => void }> = ({ onSession }) => {
+export const Auth: React.FC<{ onSession: (session: Session | null) => void }> = ({ onSession }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
