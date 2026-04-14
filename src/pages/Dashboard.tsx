@@ -195,11 +195,17 @@ export const Dashboard: React.FC = () => {
                     </motion.div>
 
                     <div className="flex gap-6 mt-4">
-                        <button className="bg-white text-indigo-950 px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:scale-105 transition-all flex items-center gap-3">
+                        <button
+                            onClick={() => navigate('/projects?new=true')}
+                            className="bg-white text-indigo-950 px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:scale-105 transition-all flex items-center gap-3"
+                        >
                             <Plus size={18} strokeWidth={4} />
                             Launch Venture
                         </button>
-                        <button className="bg-white/10 backdrop-blur-xl border border-white/20 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[11px] hover:bg-white/20 transition-all flex items-center gap-3 font-bold">
+                        <button
+                            onClick={() => navigate('/payments')}
+                            className="bg-white/10 backdrop-blur-xl border border-white/20 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[11px] hover:bg-white/20 transition-all flex items-center gap-3 font-bold"
+                        >
                             <Activity size={18} strokeWidth={3} />
                             View Analytics
                         </button>
@@ -226,7 +232,13 @@ export const Dashboard: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: stat.delay, duration: 0.5, ease: "easeOut" }}
-                        className="bg-white rounded-3xl p-10 border border-black/5 shadow-sm hover:shadow-xl transition-all duration-300 group relative"
+                        onClick={() => {
+                            if (stat.label === 'Projects') navigate('/projects');
+                            else if (stat.label === 'Tasks Pending') navigate('/tasks');
+                            else if (stat.label === 'Messages') navigate('/messages');
+                            else if (stat.label === 'Revenue') navigate('/payments');
+                        }}
+                        className="bg-white rounded-3xl p-10 border border-black/5 shadow-sm hover:shadow-xl transition-all duration-300 group relative cursor-pointer active:scale-[0.98]"
                     >
                         <div className="flex justify-between items-start mb-4">
                             <div>
@@ -349,7 +361,10 @@ export const Dashboard: React.FC = () => {
                                     </div>
                                     <h3 className="text-3xl font-extrabold tracking-tighter">Current Pipeline</h3>
                                 </div>
-                                <button className="text-primary font-bold text-sm hover:translate-x-1 transition-all duration-300 flex items-center gap-2 group p-2 rounded-xl hover:bg-primary/5">
+                                <button
+                                    onClick={() => navigate('/projects')}
+                                    className="text-primary font-bold text-sm hover:translate-x-1 transition-all duration-300 flex items-center gap-2 group p-2 rounded-xl hover:bg-primary/5"
+                                >
                                     Review All
                                     <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
@@ -388,7 +403,10 @@ export const Dashboard: React.FC = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <button className="w-10 h-10 rounded-full flex items-center justify-center text-muted group-hover:text-primary group-hover:bg-primary/10 transition-all duration-300">
+                                        <button
+                                            onClick={() => navigate(`/projects`)}
+                                            className="w-10 h-10 rounded-full flex items-center justify-center text-muted group-hover:text-primary group-hover:bg-primary/10 transition-all duration-300"
+                                        >
                                             <ChevronRight size={24} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
                                         </button>
                                     </div>
@@ -399,7 +417,12 @@ export const Dashboard: React.FC = () => {
                                         </div>
                                         <h4 className="font-extrabold text-2xl tracking-tighter">Your pipeline is clear</h4>
                                         <p className="text-muted max-w-xs mx-auto mt-3 font-medium leading-relaxed">Let's populate your workspace with some breakthrough projects.</p>
-                                        <button className="premium-btn mt-10 px-8 py-4">Create New Project</button>
+                                        <button
+                                            onClick={() => navigate('/projects?new=true')}
+                                            className="premium-btn mt-10 px-8 py-4"
+                                        >
+                                            Create New Project
+                                        </button>
                                     </div>
                                 )}
                             </div>
