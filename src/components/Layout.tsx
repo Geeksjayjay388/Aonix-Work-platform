@@ -14,7 +14,8 @@ import {
     LogOut,
     Sun,
     Moon,
-    Settings
+    Settings,
+    Bell
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -155,6 +156,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { to: '/tasks', icon: ListChecks, label: 'Tasks' },
         { to: '/payments', icon: CreditCard, label: 'Payments' },
         { to: '/messages', icon: MessageSquare, label: 'Messages', badge: unreadCount > 0 ? unreadCount : undefined },
+        { to: '/notifications', icon: Bell, label: 'Notifications' },
         { to: '/settings', icon: Settings, label: 'Settings' },
     ];
 
