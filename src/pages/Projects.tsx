@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ListChecks, Calendar, ChevronRight, CheckCircle2, Circle, X, Trash2, FolderKanban, User } from 'lucide-react';
+import {
+    Plus,
+    ListChecks,
+    Calendar,
+    ChevronRight,
+    ChevronDown,
+    MoreHorizontal,
+    CheckCircle2,
+    Circle,
+    X,
+    Trash2,
+    FolderKanban,
+    User
+} from 'lucide-react';
 import { supabase, logActivity } from '../lib/supabase';
 import type { Project, Client, Task } from '../lib/supabase';
 import { useToast } from '../components/Toast';
-import { Skeleton } from '../components/Skeleton';
 
 const Projects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -17,6 +29,16 @@ const Projects: React.FC = () => {
 
     const [formData, setFormData] = useState({ name: '', description: '', client_id: '', status: 'in-progress' as Project['status'] });
     const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['tasks']));
+
+    const toggleSection = (sectionId: string) => {
+        setExpandedSections(prev => {
+            const next = new Set(prev);
+            if (next.has(sectionId)) next.delete(sectionId);
+            else next.add(sectionId);
+            return next;
+        });
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -166,77 +188,87 @@ const Projects: React.FC = () => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-16 pb-24"
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-12 pb-16"
         >
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-5xl font-extrabold tracking-tighter text-text-main">Projects</h1>
-                    <p className="text-muted text-lg font-medium">Monitoring your creative workflow and deliverables.</p>
+            {/* Top Bar / Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16">
+                <div>
+                    <h1 className="text-5xl font-black tracking-tight text-slate-800 mb-4">Projects</h1>
+                    <p className="text-slate-400 text-xl font-bold">Monitor your creative ventures and global alliances.</p>
                 </div>
                 <button
                     onClick={() => { setFormData({ name: '', description: '', client_id: '', status: 'in-progress' }); setIsModalOpen(true); }}
-                    className="premium-btn flex items-center gap-3"
+                    className="px-10 py-5 bg-blue-600 rounded-2xl text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-blue-300 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all"
                 >
-                    <Plus size={20} strokeWidth={2.5} />
-                    <span>Initiate Project</span>
+                    <div className="flex items-center gap-3">
+                        <Plus size={18} strokeWidth={3} />
+                        <span>Initiate Project</span>
+                    </div>
                 </button>
-            </header>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* Project List */}
                 <div className="lg:col-span-1 space-y-5">
                     {loading ? (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {[1, 2, 3].map(i => (
-                                <Skeleton key={i} className="h-40 rounded-[2rem]" />
+                                <div key={i} className="h-44 bg-slate-50 rounded-[2.5rem] animate-pulse" />
                             ))}
                         </div>
                     ) : projects.length > 0 ? (
                         projects.map(project => (
                             <motion.button
                                 key={project.id}
-                                whileHover={{ scale: 1.02 }}
+                                whileHover={{ y: -4 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setSelectedProject(project)}
-                                className={`w-full text-left p-6 rounded-[2rem] transition-all duration-500 border-2 ${selectedProject?.id === project.id ? 'border-primary bg-primary/[0.03] shadow-premium shadow-primary/10' : 'border-transparent glass-card hover:bg-white hover:shadow-xl'}`}
+                                className={`w-full text-left p-10 rounded-[2.5rem] transition-all duration-300 relative overflow-hidden flex flex-col gap-6 ${selectedProject?.id === project.id ? 'bg-white shadow-2xl shadow-blue-500/10 border-2 border-blue-600' : 'bg-white border border-slate-100 hover:border-blue-200'}`}
                             >
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className={`badge ${project.status === 'completed' ? 'badge-success' : 'badge-primary'}`}>
+                                {selectedProject?.id === project.id && (
+                                    <div className="absolute top-0 left-10 h-1.5 w-16 bg-blue-600 rounded-b-full" />
+                                )}
+
+                                <div className="flex justify-between items-start">
+                                    <span className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] border ${project.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
                                         {project.status.replace('-', ' ')}
                                     </span>
-                                    <div className="w-8 h-8 rounded-full bg-border/40 flex items-center justify-center text-muted">
-                                        <Calendar size={14} strokeWidth={2.5} />
+                                    <div className="p-2 bg-slate-50 rounded-xl text-slate-300">
+                                        <Calendar size={14} />
                                     </div>
                                 </div>
-                                <h3 className="font-extrabold text-2xl tracking-tighter mb-2 leading-none">{project.name}</h3>
-                                <p className="text-sm text-muted mb-6 line-clamp-2 font-medium leading-relaxed">{project.description}</p>
-                                <div className="flex items-center justify-between mt-auto">
+
+                                <div>
+                                    <h3 className="text-2xl font-black tracking-tight text-slate-800 leading-tight mb-2">{project.name}</h3>
+                                    <p className="text-slate-400 text-sm font-bold line-clamp-2">{project.description}</p>
+                                </div>
+
+                                <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
                                     <div className="flex flex-col">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted/60 mb-0.5">Client</span>
-                                        <span className="text-xs font-black text-primary truncate max-w-[150px]">{getClientName(project.client_id)}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">Client Network</span>
+                                        <span className="text-[11px] font-black text-blue-600 uppercase tracking-widest truncate max-w-[150px]">{getClientName(project.client_id)}</span>
                                     </div>
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${selectedProject?.id === project.id ? 'bg-primary text-white' : 'bg-primary/5 text-primary'}`}>
+                                    <div className={`p-2 rounded-xl ${selectedProject?.id === project.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-slate-50 text-slate-400'}`}>
                                         <ChevronRight size={18} strokeWidth={3} />
                                     </div>
                                 </div>
                             </motion.button>
                         ))
                     ) : (
-                        <div className="glass-card p-12 text-center text-muted flex flex-col items-center border-2 border-dashed">
-                            <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center text-muted mb-8 border border-border/20">
-                                <FolderKanban size={32} strokeWidth={2} />
+                        <div className="bg-white p-12 text-center rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center">
+                            <div className="w-20 h-20 rounded-[2rem] bg-blue-50 flex items-center justify-center text-blue-200 mb-8">
+                                <FolderKanban size={32} />
                             </div>
-                            <h3 className="text-2xl font-extrabold tracking-tighter mb-3">No active projects</h3>
-                            <p className="mb-8 font-medium leading-relaxed">Establish your first creative venture to begin tracking excellence.</p>
+                            <h3 className="text-2xl font-black tracking-tight text-slate-800 mb-3">No active projects</h3>
+                            <p className="text-slate-400 font-bold mb-8 leading-relaxed">Establish your first creative venture to begin tracking excellence.</p>
                             <button
                                 onClick={() => { setFormData({ name: '', description: '', client_id: '', status: 'in-progress' }); setIsModalOpen(true); }}
-                                className="premium-btn gap-3"
+                                className="px-8 py-4 bg-blue-600 rounded-xl text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"
                             >
-                                <Plus size={20} strokeWidth={2.5} />
-                                <span>Begin Project</span>
+                                Begin Project
                             </button>
                         </div>
                     )}
@@ -247,122 +279,157 @@ const Projects: React.FC = () => {
                     {selectedProject ? (
                         <motion.div
                             key={selectedProject.id}
-                            initial={{ opacity: 0, scale: 0.98 }}
+                            initial={{ opacity: 0, scale: 0.99 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="glass-card p-12 min-h-[750px] flex flex-col relative overflow-hidden group/detail"
+                            className="bg-white border border-slate-100 rounded-[3.5rem] p-12 shadow-sm relative overflow-hidden group/folder min-h-[750px] flex flex-col"
                         >
-                            <div className="absolute top-0 right-0 p-12 text-primary opacity-[0.03] group-hover/detail:rotate-12 transition-transform duration-1000">
-                                <FolderKanban size={240} strokeWidth={3} />
-                            </div>
+                            {/* Blue Folder Tab */}
+                            <div className="absolute top-0 right-12 h-2 w-32 bg-blue-600 rounded-b-full opacity-50 group-hover/folder:opacity-100 transition-opacity" />
 
-                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
-                                <div className="space-y-3">
-                                    <h2 className="text-4xl font-extrabold tracking-tighter leading-none">{selectedProject.name}</h2>
-                                    <p className="text-muted text-lg font-medium max-w-xl leading-relaxed">{selectedProject.description}</p>
+                            <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
+                                <div className="space-y-4">
+                                    <h2 className="text-5xl font-black tracking-tight text-slate-800 leading-tight">
+                                        {selectedProject.name}
+                                    </h2>
+                                    <p className="text-slate-400 text-xl font-bold max-w-xl leading-relaxed">
+                                        {selectedProject.description}
+                                    </p>
                                 </div>
-                                <div className="flex gap-4">
-                                    <div className="glass-card px-5 py-3 border-primary/20 flex items-center gap-3 bg-white/40">
-                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                                            <ListChecks size={18} strokeWidth={2.5} />
+                                <div className="flex items-center gap-6">
+                                    <div className="bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100 flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                                            <ListChecks size={20} strokeWidth={3} />
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted/60">Milestones</span>
-                                            <span className="font-extrabold text-sm text-primary">{tasks.filter(t => t.is_completed).length}/{tasks.length} Completed</span>
+                                        <div>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Milestones</span>
+                                            <h4 className="font-black text-sm text-blue-600 uppercase tracking-widest">
+                                                {tasks.filter(t => t.is_completed).length}/{tasks.length} DONE
+                                            </h4>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="relative z-10 flex-1 flex flex-col space-y-8">
-                                <h3 className="text-xl font-extrabold tracking-tight flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center text-success">
-                                        <CheckCircle2 size={18} strokeWidth={2.5} />
+                            <div className="flex-1 flex flex-col space-y-12">
+                                <div className="flex items-center justify-between">
+                                    <div
+                                        className="flex items-center gap-4 cursor-pointer"
+                                        onClick={() => toggleSection('tasks')}
+                                    >
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                            <CheckCircle2 size={24} strokeWidth={3} />
+                                        </div>
+                                        <h3 className="text-2xl font-black tracking-tight text-slate-800">Task Execution</h3>
+                                        <div className="ml-2 p-2 bg-slate-50 rounded-xl text-slate-300">
+                                            {expandedSections.has('tasks') ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                                        </div>
                                     </div>
-                                    Task Execution
-                                </h3>
-
-                                <form onSubmit={handleAddTask} className="flex gap-4 group/form">
-                                    <input
-                                        type="text"
-                                        placeholder="Define a new milestone..."
-                                        className="flex-1 px-6 py-4 rounded-2xl glass-card border-border hover:border-primary/30 focus:border-primary transition-all duration-300 font-bold"
-                                        value={newTaskTitle}
-                                        onChange={(e) => setNewTaskTitle(e.target.value)}
-                                    />
-                                    <button type="submit" className="premium-btn px-6 aspect-square p-0 shrink-0 shadow-lg group">
-                                        <Plus size={24} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
+                                    <button className="p-3 text-slate-300 hover:text-slate-600 transition-all">
+                                        <MoreHorizontal size={24} />
                                     </button>
-                                </form>
-
-                                <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                                    {tasks.length > 0 ? (
-                                        tasks.map((task, idx) => (
-                                            <motion.div
-                                                key={task.id}
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: idx * 0.05 }}
-                                                className="flex items-center justify-between p-5 rounded-2xl border border-border/60 glass-card bg-white/30 backdrop-blur-md group/task hover:border-primary/20 hover:bg-white/60 transition-all duration-300 shadow-sm"
-                                            >
-                                                <button
-                                                    onClick={() => toggleTask(task)}
-                                                    className="flex items-center gap-4 flex-1 text-left bg-transparent p-0 group/check"
-                                                >
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${task.is_completed ? 'bg-success/10 text-success' : 'bg-border/40 text-muted group-hover/check:bg-primary/10 group-hover/check:text-primary backdrop-blur-none border border-transparent group-hover/check:border-primary/20'}`}>
-                                                        {task.is_completed ? (
-                                                            <CheckCircle2 size={22} strokeWidth={3} />
-                                                        ) : (
-                                                            <Circle size={22} strokeWidth={3} />
-                                                        )}
-                                                    </div>
-                                                    <span className={`font-bold transition-all duration-300 ${task.is_completed ? 'text-muted/60 line-through' : 'text-text-main text-lg tracking-tight'}`}>{task.title}</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => deleteTask(task.id)}
-                                                    className="opacity-0 group-hover/task:opacity-100 p-2 text-muted hover:text-accent hover:bg-accent/5 rounded-xl bg-transparent transition-all"
-                                                >
-                                                    <Trash2 size={20} strokeWidth={2.5} />
-                                                </button>
-                                            </motion.div>
-                                        ))
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-40">
-                                            <ListChecks size={48} strokeWidth={2} />
-                                            <p className="font-extrabold text-lg tracking-tight">No milestones defined.</p>
-                                        </div>
-                                    )}
                                 </div>
+
+                                <AnimatePresence initial={false}>
+                                    {expandedSections.has('tasks') && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                                            animate={{ height: 'auto', opacity: 1, marginTop: 32 }}
+                                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                            className="overflow-hidden space-y-8"
+                                        >
+                                            <form onSubmit={handleAddTask} className="relative group/form">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Define a new milestone..."
+                                                    className="w-full pl-8 pr-20 py-6 rounded-[2rem] bg-slate-50 border-none text-sm font-bold shadow-sm focus:ring-4 focus:ring-blue-500/5 transition-all outline-none placeholder:text-slate-300"
+                                                    value={newTaskTitle}
+                                                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-blue-600 rounded-xl text-white flex items-center justify-center shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all"
+                                                >
+                                                    <Plus size={24} strokeWidth={3} />
+                                                </button>
+                                            </form>
+
+                                            <div className="space-y-4">
+                                                {tasks.length > 0 ? (
+                                                    tasks.map((task, idx) => (
+                                                        <motion.div
+                                                            key={task.id}
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ delay: idx * 0.05 }}
+                                                            className="flex items-center justify-between p-8 rounded-[2rem] bg-slate-50 border border-slate-100/50 group/task hover:bg-white hover:shadow-xl transition-all duration-300"
+                                                        >
+                                                            <button
+                                                                onClick={() => toggleTask(task)}
+                                                                className="flex items-center gap-6 flex-1 text-left"
+                                                            >
+                                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${task.is_completed ? 'bg-emerald-50 text-emerald-600' : 'bg-white text-slate-200 border-2 border-slate-50'}`}>
+                                                                    {task.is_completed ? (
+                                                                        <CheckCircle2 size={24} strokeWidth={3} />
+                                                                    ) : (
+                                                                        <Circle size={24} strokeWidth={3} />
+                                                                    )}
+                                                                </div>
+                                                                <span className={`text-lg font-black tracking-tight transition-all duration-300 ${task.is_completed ? 'text-slate-300 line-through' : 'text-slate-800'}`}>
+                                                                    {task.title}
+                                                                </span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteTask(task.id)}
+                                                                className="opacity-0 group-hover/task:opacity-100 p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                            >
+                                                                <Trash2 size={20} strokeWidth={2.5} />
+                                                            </button>
+                                                        </motion.div>
+                                                    ))
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                                                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
+                                                            <ListChecks size={40} />
+                                                        </div>
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">No active milestones</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
-                            <div className="relative z-10 mt-10 pt-8 border-t border-border/60 flex flex-col sm:flex-row justify-between items-center gap-6">
+                            <div className="mt-12 pt-10 border-t border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-8">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-primary/5 border-2 border-white flex items-center justify-center text-primary shadow-lg overflow-hidden">
-                                        <User size={18} strokeWidth={2.5} />
+                                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm border border-white">
+                                        <User size={22} strokeWidth={3} />
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted/60 leading-none">Collaborating with</span>
-                                        <span className="font-black text-primary text-sm tracking-tight">{getClientName(selectedProject.client_id)}</span>
+                                    <div>
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-1">Collaborating Partner</span>
+                                        <span className="font-black text-blue-600 text-sm uppercase tracking-widest">
+                                            {getClientName(selectedProject.client_id)}
+                                        </span>
                                     </div>
                                 </div>
-                                <div className="flex gap-3 w-full sm:w-auto">
-                                    <button className="secondary-btn py-3 px-6 text-xs flex-1 sm:flex-none uppercase tracking-widest font-black shadow-sm">Modify</button>
-                                    <button className="premium-btn py-3 px-6 text-xs flex-1 sm:flex-none uppercase tracking-widest font-black shadow-lg">Finalize</button>
+                                <div className="flex gap-4 w-full sm:w-auto">
+                                    <button className="px-8 py-4 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-100 transition-all">Modify</button>
+                                    <button className="px-8 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">Finalize</button>
                                 </div>
                             </div>
                         </motion.div>
                     ) : (
-                        <div className="glass-card h-full flex flex-col items-center justify-center text-muted p-20 text-center border-none shadow-premium min-h-[650px] relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-primary/[0.01] pointer-events-none" />
-                            <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center text-muted/20 mb-8 border border-border/20 group-hover:scale-110 transition-transform duration-700">
+                        <div className="h-full flex flex-col items-center justify-center bg-white border border-slate-50 rounded-[3.5rem] p-24 text-center shadow-sm relative overflow-hidden group">
+                            <div className="w-24 h-24 rounded-[2.5rem] bg-blue-50 flex items-center justify-center text-blue-100 mb-8 border border-white group-hover:scale-110 transition-all duration-700">
                                 <FolderKanban size={48} strokeWidth={1} />
                             </div>
-                            <h3 className="text-3xl font-extrabold tracking-tighter text-text-main mb-3">Project Selection Required</h3>
-                            <p className="max-w-xs mx-auto font-medium leading-relaxed">Choose a project from your workbench to monitor performance and execute milestones.</p>
+                            <h3 className="text-4xl font-black tracking-tight text-slate-800 mb-4">Project Workbench</h3>
+                            <p className="max-w-xs mx-auto text-slate-400 font-bold leading-relaxed">Choose a project from the list to monitor performance and execute milestones.</p>
                         </div>
                     )}
                 </div>
             </div>
-
 
             {/* New Project Modal */}
             <AnimatePresence>
@@ -372,45 +439,48 @@ const Projects: React.FC = () => {
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="glass-card p-6 w-full max-w-md shadow-2xl"
+                            className="bg-white p-8 rounded-[2.5rem] w-full max-w-lg shadow-2xl border border-slate-100"
                         >
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-bold">New Project</h2>
-                                <button onClick={() => setIsModalOpen(false)} className="bg-transparent p-1 text-muted hover:text-main"><X size={20} /></button>
+                            <div className="flex justify-between items-center mb-8">
+                                <h2 className="text-3xl font-black tracking-tight text-slate-800">Initiate Project</h2>
+                                <button onClick={() => setIsModalOpen(false)} className="bg-slate-50 p-3 rounded-xl text-slate-300 hover:text-slate-600 transition-all"><X size={24} /></button>
                             </div>
-                            <form onSubmit={handleCreateProject} className="space-y-4">
+                            <form onSubmit={handleCreateProject} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-semibold mb-1">Project Name</label>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-2">Title of Venture</label>
                                     <input
                                         type="text"
+                                        placeholder="e.g. Project Odyssey"
+                                        className="w-full px-6 py-4 rounded-xl bg-slate-50 border-none text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold mb-1">Description</label>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-2">Detailed Mandate</label>
                                     <textarea
-                                        className="w-full p-3 rounded-xl border border-border bg-white text-main"
-                                        rows={3}
+                                        placeholder="Outline the core objectives..."
+                                        className="w-full px-6 py-4 rounded-xl bg-slate-50 border-none text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all outline-none resize-none"
+                                        rows={4}
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     ></textarea>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold mb-1">Client</label>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-2">Strategic Partner</label>
                                     <select
-                                        className="w-full p-3 rounded-xl border border-border bg-white text-main outline-none focus:border-primary"
+                                        className="w-full px-6 py-4 rounded-xl bg-slate-50 border-none text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all outline-none appearance-none"
                                         value={formData.client_id}
                                         onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
                                         required
                                     >
                                         <option value="">Select a client</option>
-                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name} ({c.company})</option>)}
+                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name} — {c.company}</option>)}
                                     </select>
                                 </div>
-                                <button type="submit" className="premium-btn w-full mt-2">
-                                    Create Project
+                                <button type="submit" className="w-full py-5 bg-blue-600 rounded-xl text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-blue-100 hover:bg-blue-700 transition-all mt-4">
+                                    Establish Project
                                 </button>
                             </form>
                         </motion.div>

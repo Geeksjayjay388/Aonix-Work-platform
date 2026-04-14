@@ -5,17 +5,15 @@ import {
     Users,
     FolderKanban,
     CreditCard,
-    LogOut,
-    Moon,
-    Sun,
-    Settings as SettingsIcon,
-    Menu,
-    X,
+    Plus,
     User,
     ListChecks,
-    ChevronRight,
     MessageSquare,
-    Bell
+    Menu,
+    X,
+    LogOut,
+    Sun,
+    Moon
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +23,6 @@ import logoPurple from '../assets/logopurple.png';
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isDark, setIsDark] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [userEmail, setUserEmail] = useState<string | null>(null);
     const [userName, setUserName] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<'dev' | 'designer'>('dev');
     const [unreadCount, setUnreadCount] = useState(0);
@@ -38,7 +35,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         const loadUserData = async () => {
             const profile = await getResolvedProfile();
             if (!profile) return;
-            setUserEmail(profile.email ?? null);
             setCurrentUserId(profile.id);
             setUserName(profile.legalName);
             setUserRole(profile.role);
@@ -157,85 +153,76 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { to: '/projects', icon: FolderKanban, label: 'Projects' },
         { to: '/tasks', icon: ListChecks, label: 'Tasks' },
         { to: '/payments', icon: CreditCard, label: 'Payments' },
-        { to: '/notifications', icon: Bell, label: 'Notifications', badge: unreadCount > 0 ? unreadCount : undefined },
         { to: '/messages', icon: MessageSquare, label: 'Messages', badge: unreadCount > 0 ? unreadCount : undefined },
-        { to: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 
     const SidebarContent = () => (
         <div className="flex flex-col h-full">
-            <div className="flex items-center gap-3 mb-10 px-2 group cursor-pointer">
-                <img src={logoPurple} alt="Aonix logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" />
-                <div className="flex flex-col">
-                    <h2 className="text-xl font-black leading-none tracking-tighter">Aonix</h2>
-                    <span className="text-[10px] text-primary font-extrabold uppercase tracking-[0.3em] mt-1">Studios</span>
-                </div>
+            <div className="flex flex-col mb-12 px-2">
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-none mb-1">Aonix Studios</h2>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Creative Workspace</span>
             </div>
 
-            <nav className="space-y-1.5 flex-1">
+            <nav className="space-y-1 flex-1">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.to}
                         to={item.to}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={({ isActive }) =>
-                            `flex items-center justify-between group p-3.5 rounded-2xl transition-all duration-300 ${isActive
-                                ? 'nav-active shadow-glow scale-[1.02]'
-                                : 'text-muted hover:bg-primary/5 hover:text-primary hover:translate-x-1'
+                            `flex items-center justify-between group p-3 px-4 rounded-xl transition-all duration-200 ${isActive
+                                ? 'bg-blue-50/50 text-blue-600'
+                                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
                             }`
                         }
                     >
-                    {({ isActive }) => (
-                            <>
-                                <div className="flex items-center gap-4">
-                                    <div className="relative">
-                                        <item.icon size={20} strokeWidth={isActive ? 3 : 2} />
-                                        {typeof item.badge === 'number' && item.badge > 0 && (
-                                            <div className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                                {item.badge > 9 ? '9+' : item.badge}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <span className={`font-bold text-sm ${isActive ? 'tracking-tight' : ''}`}>{item.label}</span>
-                                </div>
-                                <ChevronRight size={14} className={`opacity-0 group-hover:opacity-40 transition-opacity duration-300`} />
-                            </>
+                        {({ isActive }) => (
+                            <div className="flex items-center gap-4">
+                                <item.icon size={20} className={isActive ? 'text-blue-600' : 'text-slate-400'} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className={`font-bold text-sm ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>{item.label}</span>
+                                {typeof item.badge === 'number' && item.badge > 0 && (
+                                    <span className="bg-rose-500 text-white text-[10px] font-black rounded-full px-2 py-0.5 ml-2">
+                                        {item.badge}
+                                    </span>
+                                )}
+                            </div>
                         )}
                     </NavLink>
                 ))}
             </nav>
 
-            <div className="mt-auto pt-6">
-                <div className="glass-card p-4 mb-4 border-primary/10 hover:border-primary/30 transition-colors">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-primary/20 border border-white/20">
-                            <User size={18} strokeWidth={2.5} />
-                        </div>
-                        <div className="overflow-hidden flex-1">
-                            <p className="text-xs font-black truncate">{userName || userEmail?.split('@')[0] || 'User'}</p>
-                            <div className="flex items-center justify-between">
-                                <p className="text-[10px] text-muted truncate font-medium capitalize">{userRole}</p>
-                            </div>
-                        </div>
+            <div className="mt-auto px-2 pb-6 flex flex-col gap-6">
+                <button
+                    onClick={() => navigate('/projects?new=true')}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200"
+                >
+                    <Plus size={20} strokeWidth={3} />
+                    <span>New Project</span>
+                </button>
+
+                <div className="flex items-center gap-4 pt-6 border-t border-slate-100">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                        <User className="text-white" size={24} />
                     </div>
-                </div>
-
-                <div className="flex gap-2">
-                    <button
-                        onClick={toggleTheme}
-                        className="flex-1 flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl text-muted hover:bg-glass-bg hover:text-primary hover:shadow-sm border border-transparent hover:border-glass-border transition-all duration-300 bg-transparent group"
-                    >
-                        {isDark ? <Sun size={18} className="group-hover:rotate-45 transition-transform" /> : <Moon size={18} className="group-hover:-rotate-12 transition-transform" />}
-                        <span className="text-[9px] font-black uppercase tracking-widest">{isDark ? 'Light' : 'Dark'}</span>
-                    </button>
-
-                    <button
-                        onClick={handleSignOut}
-                        className="flex-1 flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl text-muted hover:bg-accent/5 hover:text-accent border border-transparent hover:border-accent/10 transition-all duration-300 bg-transparent group"
-                    >
-                        <LogOut size={18} className="group-hover:translate-x-0.5 transition-transform" />
-                        <span className="text-[9px] font-black uppercase tracking-widest">Exit</span>
-                    </button>
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-black text-slate-800 truncate">{userName || 'Jacob Sterling'}</span>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{userRole === 'designer' ? 'Lead Designer' : 'Lead Developer'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-4 ml-auto">
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"
+                        >
+                            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                        </button>
+                        <button
+                            onClick={handleSignOut}
+                            className="p-2 rounded-xl text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all"
+                            title="Sign Out"
+                        >
+                            <LogOut size={18} />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -246,10 +233,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="mesh-bg" />
 
             {/* Desktop Sidebar */}
-            <aside className="w-72 hidden lg:block p-6 fixed top-0 bottom-0 left-0 z-40">
-                <div className="glass-card h-full p-8 shadow-premium overflow-y-auto overflow-x-hidden custom-scrollbar">
-                    <SidebarContent />
-                </div>
+            <aside className="w-80 hidden lg:block p-8 fixed top-0 bottom-0 left-0 z-40 bg-[#F9FAFB] border-r border-slate-100">
+                <SidebarContent />
             </aside>
 
             {/* Mobile Header */}

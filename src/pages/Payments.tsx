@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, DollarSign, X, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { Plus, DollarSign, X, Search, Wallet, ClipboardCheck, MoreHorizontal, BarChart3, ArrowRight } from 'lucide-react';
 import { supabase, logActivity } from '../lib/supabase';
 import type { Payment, Project, Client } from '../lib/supabase';
 import { useToast } from '../components/Toast';
@@ -78,42 +78,8 @@ const Payments: React.FC = () => {
         }
     };
 
-    const markAsPaid = async (id: string) => {
-        try {
-            const { error } = await supabase.from('payments').update({ status: 'paid' }).eq('id', id);
-            if (error) {
-                toast.error('Failed to update payment status');
-                return;
-            }
-
-            toast.success('Payment marked as paid!');
-            fetchData();
-            const payment = payments.find(p => p.id === id);
-            if (payment) {
-                logActivity({
-                    type: 'payment',
-                    action: 'updated',
-                    entity_id: payment.project_id,
-                    title: `Payment paid: $${payment.amount} for ${getProjectName(payment.project_id)}`,
-                    metadata: { amount: payment.amount, status: 'paid' }
-                });
-            }
-        } catch (err) {
-            toast.error('Failed to update payment');
-            console.error('Mark paid error:', err);
-        }
-    };
-
     const getProjectName = (id: string) => projects.find(p => p.id === id)?.name || 'Unknown Project';
     const getClientName = (id: string) => clients.find(c => c.id === id)?.name || 'Unknown Client';
-
-    const getStatusIcon = (status: Payment['status']) => {
-        switch (status) {
-            case 'paid': return <CheckCircle2 className="text-success" size={16} />;
-            case 'overdue': return <AlertCircle className="text-accent" size={16} />;
-            default: return <Clock className="text-primary" size={16} />;
-        }
-    };
 
     const totalRevenue = payments.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0);
     const pendingRevenue = payments.filter(p => p.status === 'pending').reduce((acc, p) => acc + p.amount, 0);
@@ -125,95 +91,127 @@ const Payments: React.FC = () => {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="space-y-16 pb-24"
         >
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-16">
                 <div className="space-y-1">
-                    <h1 className="text-5xl font-extrabold tracking-tight text-text-main">Revenue</h1>
-                    <p className="text-muted text-lg font-medium">Monitoring your financial performance and transaction volume.</p>
+                    <h1 className="text-6xl font-black tracking-tight text-slate-800 leading-none">Revenue</h1>
+                    <p className="text-slate-400 text-lg font-medium max-w-2xl">
+                        Orchestrating financial flow across all creative ventures and partnerships.
+                    </p>
                 </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="premium-btn gap-4 py-5 px-10 rounded-[2rem] shadow-premium"
-                >
-                    <Plus size={22} strokeWidth={3} />
-                    <span className="font-black uppercase tracking-[0.2em] text-[11px]">Record Transaction</span>
-                </button>
+                <div className="flex flex-col sm:flex-row gap-6 w-full md:w-auto items-center">
+                    <div className="relative flex-1 md:w-[400px] group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" opacity={0.6} />
+                        <input
+                            type="text"
+                            placeholder="Search accounts..."
+                            className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all rounded-full font-medium text-sm text-slate-600 placeholder:text-slate-400 placeholder:font-normal"
+                        />
+                    </div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-3 px-8 py-4 bg-blue-600 rounded-2xl hover:bg-blue-700 text-white font-bold transition-all shadow-xl shadow-blue-200 group grow sm:grow-0"
+                    >
+                        <Plus size={18} strokeWidth={3} />
+                        <span className="font-black uppercase tracking-widest text-[11px]">Record Transaction</span>
+                    </button>
+                </div>
             </header>
 
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-card p-10 flex items-center gap-8 border-l-[16px] border-success bg-bg-card/70 shadow-premium rounded-[3rem] group hover:scale-[1.02] transition-all duration-500"
+                    className="flex items-center gap-8 p-10 bg-slate-50 border border-slate-100 rounded-[2.5rem] group hover:bg-white hover:shadow-xl transition-all duration-500"
                 >
-                    <div className="w-20 h-20 bg-success/10 rounded-[1.5rem] flex items-center justify-center text-success group-hover:bg-success group-hover:text-white transition-all duration-500 shadow-xl shadow-success/10 border border-border/40">
-                        <DollarSign size={36} strokeWidth={3} />
+                    <div className="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                        <Wallet size={32} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <p className="text-muted text-[10px] font-black uppercase tracking-[0.25em] mb-2">Accumulated Yield</p>
-                        <h3 className="text-5xl font-extrabold tracking-tight text-text-main leading-none">${totalRevenue.toLocaleString()}</h3>
+                        <p className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] mb-1">Accumulated Yield</p>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-5xl font-black text-slate-800 tracking-tight">${Math.floor(totalRevenue).toLocaleString()}</span>
+                            <span className="text-xl font-bold text-blue-300">.{(totalRevenue % 1).toFixed(2).split('.')[1]}</span>
+                        </div>
                     </div>
                 </motion.div>
+
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-card p-10 flex items-center gap-8 border-l-[16px] border-primary bg-bg-card/70 shadow-premium rounded-[3rem] group hover:scale-[1.02] transition-all duration-500"
+                    className="flex items-center gap-8 p-10 bg-slate-50 border border-slate-100 rounded-[2.5rem] group hover:bg-white hover:shadow-xl transition-all duration-500"
                 >
-                    <div className="w-20 h-20 bg-primary/10 rounded-[1.5rem] flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-xl shadow-primary/10 border border-border/40">
-                        <Clock size={36} strokeWidth={3} />
+                    <div className="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                        <ClipboardCheck size={32} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <p className="text-muted text-[10px] font-black uppercase tracking-[0.25em] mb-2">Pending Pipeline</p>
-                        <h3 className="text-5xl font-extrabold tracking-tight text-text-main leading-none">${pendingRevenue.toLocaleString()}</h3>
+                        <p className="text-[10px] font-bold text-blue-400/80 uppercase tracking-[0.2em] mb-1">Pending Pipeline</p>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-5xl font-black text-slate-800 tracking-tight">${Math.floor(pendingRevenue).toLocaleString()}</span>
+                            <span className="text-xl font-bold text-blue-300">.{(pendingRevenue % 1).toFixed(2).split('.')[1]}</span>
+                        </div>
                     </div>
                 </motion.div>
             </div>
 
-            <div className="glass-card overflow-hidden bg-bg-card/70 backdrop-blur-xl shadow-premium border-none rounded-[3.5rem] p-4">
-
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden mb-16">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-primary/[0.03] border-b border-border">
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Creative Venture</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Partner Entity</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Financial Value</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Maturity Date</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60">Resolution Status</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.25em] text-primary/60 text-right">Operations</th>
+                            <tr className="border-b border-slate-50">
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-300">Creative Venture</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-300">Partner Entity</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-300">Financial Value</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-300">Maturity Date</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-300">Resolution</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-300 text-right">Operations</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-border/40">
+                        <tbody className="divide-y divide-slate-50">
                             {loading ? (
                                 [1, 2, 3, 4].map(i => (
                                     <tr key={i} className="animate-pulse">
-                                        <td className="px-10 py-8" colSpan={6}><div className="h-6 bg-border/40 rounded-xl w-full"></div></td>
+                                        <td className="px-10 py-12" colSpan={6}><div className="h-10 bg-border/20 rounded-3xl w-full"></div></td>
                                     </tr>
                                 ))
                             ) : payments.length > 0 ? (
                                 payments.map(payment => (
-                                    <tr key={payment.id} className="hover:bg-primary/[0.01] transition-all duration-300 group">
-                                        <td className="px-10 py-8 font-black text-lg tracking-tight text-text-main">{getProjectName(payment.project_id)}</td>
-                                        <td className="px-10 py-8 text-muted font-bold">{getClientName(payment.client_id)}</td>
-                                        <td className="px-10 py-8 font-black text-primary text-xl tracking-tighter">${payment.amount.toLocaleString()}</td>
-                                        <td className="px-10 py-8 text-muted font-bold">{new Date(payment.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                                    <tr key={payment.id} className="hover:bg-slate-50 transition-all duration-300 group">
                                         <td className="px-10 py-8">
-                                            <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm ${payment.status === 'paid' ? 'bg-success/10 text-success' : payment.status === 'overdue' ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'}`}>
-                                                {getStatusIcon(payment.status)}
-                                                {payment.status}
+                                            <div className="flex items-center gap-5">
+                                                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100/50">
+                                                    {getProjectName(payment.project_id).charAt(0).toLowerCase()}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-lg text-slate-800 leading-tight">
+                                                        {getProjectName(payment.project_id).toLowerCase()}
+                                                    </span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">AX-2024-{payment.id.slice(0, 3).toUpperCase()}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-10 py-8">
+                                            <span className="text-slate-500 font-bold text-sm">{getClientName(payment.client_id)}</span>
+                                        </td>
+                                        <td className="px-10 py-8">
+                                            <span className="font-bold text-slate-800 text-lg">${payment.amount.toLocaleString()}.00</span>
+                                        </td>
+                                        <td className="px-10 py-8">
+                                            <span className="text-slate-400 font-bold text-sm">
+                                                {new Date(payment.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                        </td>
+                                        <td className="px-10 py-8">
+                                            <span className={`inline-flex px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${payment.status === 'paid' ? 'bg-blue-50 text-blue-500 border border-blue-100' : 'bg-rose-50 text-rose-500 border border-rose-100'}`}>
+                                                {payment.status === 'paid' ? 'PAID' : 'PENDING'}
                                             </span>
                                         </td>
                                         <td className="px-10 py-8 text-right">
-                                            {payment.status !== 'paid' && (
-                                                <button
-                                                    onClick={() => markAsPaid(payment.id)}
-                                                    className="px-6 py-3 bg-success/10 text-success text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-success hover:text-white transition-all shadow-sm"
-                                                >
-                                                    Finalize Payment
-                                                </button>
-                                            )}
+                                            <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors">
+                                                <MoreHorizontal size={20} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -224,13 +222,14 @@ const Payments: React.FC = () => {
                                             <div className="w-24 h-24 bg-primary/5 rounded-[32px] flex items-center justify-center text-primary/20 mb-8">
                                                 <DollarSign size={48} strokeWidth={1} />
                                             </div>
-                                            <h3 className="text-2xl font-black mb-3 tracking-tight">No financial records</h3>
-                                            <p className="text-muted font-medium mb-10 leading-relaxed italic text-center">Your ledger is currently empty. Transactions will appear here once recorded.</p>
+                                            <h3 className="text-3xl font-black mb-4 tracking-tight text-slate-900">No financial records</h3>
+                                            <p className="text-slate-400 font-medium mb-12 leading-relaxed italic text-center">Your ledger is currently empty. Transactions will appear here once recorded.</p>
                                             <button
                                                 onClick={() => setIsModalOpen(true)}
-                                                className="premium-btn py-4 px-10 rounded-2xl shadow-premium"
+                                                className="flex items-center gap-3 px-10 py-5 bg-white border-2 border-slate-900 rounded-2xl hover:bg-slate-50 transition-all shadow-[6px_6px_0px_#111827] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                                             >
-                                                Record Initial Payment
+                                                <Plus size={20} className="text-slate-900" strokeWidth={3} />
+                                                <span className="font-black uppercase tracking-widest text-xs text-slate-900">Record Initial Payment</span>
                                             </button>
                                         </div>
                                     </td>
@@ -238,6 +237,23 @@ const Payments: React.FC = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+                <div className="bg-blue-50/50 border border-blue-100/50 rounded-[2.5rem] p-10 flex items-center justify-between group">
+                    <div className="space-y-4 max-w-sm">
+                        <h4 className="text-2xl font-black text-slate-800 tracking-tight">Financial Mastery</h4>
+                        <p className="text-slate-500 font-medium leading-relaxed">
+                            Detailed fiscal reporting for the fiscal year 2024 is now available for download.
+                        </p>
+                        <button className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-widest pt-2 group-hover:gap-4 transition-all" type="button">
+                            Generate Report <ArrowRight size={14} strokeWidth={3} />
+                        </button>
+                    </div>
+                    <div className="w-24 h-24 bg-blue-100/50 rounded-2xl flex items-center justify-center text-blue-300">
+                        <BarChart3 size={48} strokeWidth={1.5} />
+                    </div>
                 </div>
             </div>
 

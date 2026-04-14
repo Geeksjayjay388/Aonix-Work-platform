@@ -79,7 +79,7 @@ const Auth: React.FC<{ onSession: (session: Session | null) => void }> = ({ onSe
                     <button
                         type="submit"
                         disabled={loading}
-                        className="premium-btn w-full"
+                        className="w-full bg-primary text-white py-3.5 px-7 rounded-sm font-semibold tracking-tight flex items-center justify-center gap-3 overflow-hidden relative transition-all duration-200 hover:bg-primary/90 active:scale-95 disabled:opacity-50"
                     >
                         {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
                     </button>

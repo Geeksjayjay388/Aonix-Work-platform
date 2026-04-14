@@ -130,26 +130,26 @@ const Clients: React.FC = () => {
         >
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
                 <div className="space-y-1">
-                    <h1 className="text-5xl font-extrabold tracking-tighter text-text-main">Partners</h1>
+                    <h1 className="text-6xl font-black tracking-tight text-slate-900 leading-none">Clients</h1>
                     <p className="text-muted text-lg font-medium">Coordinate your global network and creative alliances.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-6 w-full md:w-auto items-center">
-                    <div className="relative flex-1 md:w-96 group">
-                        <Search className="absolute left-5 top-5 w-5 h-5 text-muted group-focus-within:text-primary transition-all duration-300" />
+                    <div className="relative flex-1 md:w-[400px] group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" opacity={0.6} />
                         <input
                             type="text"
                             placeholder="Search network..."
-                            className="pl-14 py-5 bg-bg-card/70 border-2 border-border/60 focus:border-primary/30 transition-all rounded-[2rem] font-bold text-sm shadow-sm hover:shadow-md"
+                            className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all rounded-full font-medium text-sm text-slate-600 placeholder:text-slate-400 placeholder:font-normal"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <button
                         onClick={() => { setEditingClient(null); setFormData({ name: '', email: '', company: '' }); setIsModalOpen(true); }}
-                        className="premium-btn gap-4 py-5 px-10 rounded-[2rem] shadow-premium grow sm:grow-0"
+                        className="flex items-center gap-3 px-8 py-4 bg-white border-2 border-slate-900 rounded-xl hover:bg-slate-50 transition-all group shrink-0 shadow-[4px_4px_0px_#111827] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                     >
-                        <UserPlus size={22} strokeWidth={3} />
-                        <span className="font-black uppercase tracking-[0.2em] text-[11px]">Enlist Partner</span>
+                        <UserPlus size={18} className="text-slate-900" strokeWidth={2.5} />
+                        <span className="font-black uppercase tracking-widest text-[10px] text-slate-900">Enlist Client</span>
                     </button>
                 </div>
             </header>
@@ -162,15 +162,15 @@ const Clients: React.FC = () => {
                 </div>
             )}
 
-            <div className="glass-card overflow-hidden bg-bg-card/70 backdrop-blur-xl shadow-premium border-none rounded-[3rem] p-4">
+            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-border/40">
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60">Partner Identity</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60">Organization</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60">Communication</th>
-                                <th className="px-10 py-8 font-black text-[10px] uppercase tracking-[0.3em] text-primary/60 text-right">Operations</th>
+                            <tr className="border-b border-slate-100">
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-400/80">Client Identity</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-400/80">Organization</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-400/80">Communication</th>
+                                <th className="px-10 py-6 font-bold text-[10px] uppercase tracking-[0.2em] text-blue-400/80 text-right">Operations</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40">
@@ -182,48 +182,43 @@ const Clients: React.FC = () => {
                                 ))
                             ) : filteredClients.length > 0 ? (
                                 filteredClients.map(client => (
-                                    <tr key={client.id} className="hover:bg-primary/[0.03] transition-all duration-500 group">
+                                    <tr key={client.id} className="hover:bg-slate-50/50 transition-all duration-300 group">
                                         <td className="px-10 py-8">
                                             <div className="flex items-center gap-6">
-                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-600/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 transition-all duration-500 shadow-sm border border-border/40">
-                                                    {client.name.charAt(0)}
+                                                <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-2xl border border-blue-100/50">
+                                                    {client.name.charAt(0).toLowerCase()}
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <p className="font-extrabold text-xl tracking-tighter text-text-main leading-none">{client.name}</p>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted/60">{client.company || 'Individual'}</p>
+                                                <div className="flex flex-col">
+                                                    <p className="font-bold text-lg text-slate-800 leading-tight">{client.name.toLowerCase()}</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">{client.company || 'SAAS'}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
-                                            <div className="flex items-center gap-3 text-muted font-extrabold text-sm">
-                                                <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center group-hover:text-primary transition-colors">
-                                                    <Building2 size={14} strokeWidth={2.5} />
-                                                </div>
-                                                {client.company || 'Private Entity'}
+                                            <div className="flex items-center gap-3 text-slate-600 font-bold text-sm">
+                                                <Building2 size={16} className="text-slate-400" />
+                                                <span className="text-slate-500">{client.company || 'Individual'}</span>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
-                                            <div className="flex items-center gap-3 text-muted font-extrabold text-sm">
-                                                <div className="w-8 h-8 rounded-lg bg-border/40 flex items-center justify-center group-hover:text-primary transition-colors">
-                                                    <Mail size={14} strokeWidth={2.5} />
-                                                </div>
-                                                {client.email}
+                                            <div className="flex items-center gap-3 text-slate-600 font-bold text-sm">
+                                                <Mail size={16} className="text-slate-400" />
+                                                <span className="text-slate-500">{client.email}</span>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8 text-right">
-                                            <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                                                 <button
                                                     onClick={() => { setEditingClient(client); setFormData({ name: client.name, email: client.email, company: client.company }); setIsModalOpen(true); }}
-                                                    className="w-12 h-12 flex items-center justify-center hover:bg-primary/10 rounded-2xl text-primary bg-bg-card/80 border-2 border-border/40 shadow-sm transition-all hover:border-primary/20"
+                                                    className="w-10 h-10 flex items-center justify-center hover:bg-blue-50 rounded-xl text-slate-400 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"
                                                 >
-                                                    <Edit2 size={18} strokeWidth={2.5} />
+                                                    <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(client)}
-                                                    className="w-12 h-12 flex items-center justify-center hover:bg-accent/10 rounded-2xl text-accent bg-bg-card/80 border-2 border-border/40 shadow-sm transition-all hover:border-accent/20"
-                                                    aria-label={`Delete ${client.name}`}
+                                                    className="w-10 h-10 flex items-center justify-center hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"
                                                 >
-                                                    <Trash2 size={18} strokeWidth={2.5} />
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         </td>
@@ -236,14 +231,14 @@ const Clients: React.FC = () => {
                                             <div className="w-24 h-24 bg-bg-card shadow-2xl rounded-[2rem] flex items-center justify-center text-muted/20 mb-10 border border-border/20">
                                                 <UserPlus size={48} strokeWidth={1} />
                                             </div>
-                                            <h3 className="text-3xl font-extrabold mb-4 tracking-tighter text-text-main">No partners enlisted</h3>
-                                            <p className="text-muted font-medium mb-12 leading-relaxed italic">Your professional network is currently idle. Initialize a partnership to expand your reach.</p>
+                                            <h3 className="text-3xl font-black mb-4 tracking-tight text-slate-900">No clients enlisted</h3>
+                                            <p className="text-slate-400 font-medium mb-12 leading-relaxed italic">Your professional network is currently idle. Initialize a client connection to expand your reach.</p>
                                             <button
                                                 onClick={() => { setEditingClient(null); setFormData({ name: '', email: '', company: '' }); setIsModalOpen(true); }}
-                                                className="premium-btn py-5 px-12 rounded-[2rem] shadow-premium"
+                                                className="flex items-center gap-3 px-10 py-5 bg-white border-2 border-slate-900 rounded-2xl hover:bg-slate-50 transition-all shadow-[6px_6px_0px_#111827] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                                             >
-                                                <Plus size={22} strokeWidth={3} />
-                                                <span className="font-black uppercase tracking-[0.2em] text-xs">Initiate Relationship</span>
+                                                <Plus size={20} className="text-slate-900" strokeWidth={3} />
+                                                <span className="font-black uppercase tracking-widest text-xs text-slate-900">Enlist New Client</span>
                                             </button>
                                         </div>
                                     </td>
@@ -268,7 +263,7 @@ const Clients: React.FC = () => {
                             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary to-indigo-600" />
                             <div className="flex justify-between items-center mb-10">
                                 <div className="space-y-1">
-                                    <h2 className="text-3xl font-black tracking-tight">{editingClient ? 'Edit Partner' : 'New Client'}</h2>
+                                    <h2 className="text-3xl font-black tracking-tight">{editingClient ? 'Edit Client' : 'New Client'}</h2>
                                     <p className="text-muted text-sm font-medium">Fill in the details below to update your records.</p>
                                 </div>
                                 <button onClick={() => setIsModalOpen(false)} className="bg-primary/5 p-3 rounded-2xl text-muted hover:text-accent hover:bg-accent/5 transition-all"><X size={24} strokeWidth={2.5} /></button>
@@ -328,7 +323,7 @@ const Clients: React.FC = () => {
                                     )}
                                 </div>
                                 <button type="submit" disabled={isMutating} className="premium-btn w-full py-5 rounded-2xl shadow-premium mt-4 text-sm font-black uppercase tracking-[0.2em]">
-                                    {isMutating ? 'Synchronizing...' : (editingClient ? 'Finalize Changes' : 'Initialize Partnership')}
+                                    {isMutating ? 'Communicating...' : (editingClient ? 'Save Changes' : 'Confirm Registration')}
                                 </button>
                             </form>
                         </motion.div>
