@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus,
     ListChecks,
-    Calendar,
-    ChevronRight,
     ChevronDown,
     MoreHorizontal,
     CheckCircle2,
@@ -29,16 +27,7 @@ const Projects: React.FC = () => {
 
     const [formData, setFormData] = useState({ name: '', description: '', client_id: '', status: 'in-progress' as Project['status'] });
     const [newTaskTitle, setNewTaskTitle] = useState('');
-    const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['tasks']));
 
-    const toggleSection = (sectionId: string) => {
-        setExpandedSections(prev => {
-            const next = new Set(prev);
-            if (next.has(sectionId)) next.delete(sectionId);
-            else next.add(sectionId);
-            return next;
-        });
-    };
 
     const fetchData = async () => {
         setLoading(true);
